@@ -8,8 +8,6 @@ import {
 import { HomePage } from './pages/HomePage';
 import { ChatPage } from './pages/ChatPage';
 import React from 'react';
-import { IParticipantsProps } from './components/Participants';
-import { IVideoPlayerProps } from './components/VideoPlayer';
 
 const peerConfig = {
   'iceServers': [
@@ -50,46 +48,11 @@ const peerConfig = {
   ]
 };
 
-const videoPlayerOptions: IVideoPlayerProps = {
-  autoplay: true,
-  controls: true,
-  sources: [{
-    src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-    type: 'video/mp4'
-  }],
-  fluid: true,
-};
-
-const participantsVideos: IParticipantsProps['videos'] = [
-  {
-    id: 0,
-    autoplay: true,
-    width: 300,
-    height: 150,
-    sources: [{
-      src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-      type: 'video/mp4',
-    }],
-    fluid: true,
-  }, {
-    id: 1,
-    autoplay: true,
-    width: 300,
-    height: 150,
-    sources: [{
-      src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-      type: 'video/mp4',
-    }],
-    fluid: true,
-  },
-];
-
 interface IConnectionData {
   connectedIds: string[];
 }
 
 function App() {
-  const [isTalking, setIsTalking] = React.useState<boolean>(false);
   const [peerId, setPeerId] = React.useState<string>();
   const [connectedIds, setConnectedIds] = React.useState<string[]>([]);
 
