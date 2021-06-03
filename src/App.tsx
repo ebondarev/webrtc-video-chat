@@ -53,8 +53,9 @@ interface IConnectionData {
 }
 
 function App() {
-  const [peerId, setPeerId] = React.useState<string>();
-  const [connectedIds, setConnectedIds] = React.useState<string[]>([]);
+  const [ peerId, setPeerId ] = React.useState<string>();
+  const [ connectedIds, setConnectedIds ] = React.useState<string[]>([]);
+  const [ nodeType, setNodeType ] = React.useState<'main' | 'client' | null>(null);
 
   const peerRef = React.useRef(
     new (window as any).Peer({ config: peerConfig })
@@ -79,11 +80,11 @@ function App() {
   }, []);
 
   function handleCreateChat() {
-
+    setNodeType('main');
   }
   
   function handleConnectToChat() {
-
+    setNodeType('client');
   }
   
   return (
