@@ -1,7 +1,0 @@
-export interface IButtonProps { }
-
-export const Button: React.FC<IButtonProps> = ({ children }) => {
-  return (
-    <button>{children}</button>
-  )
-};

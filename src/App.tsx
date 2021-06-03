@@ -1,11 +1,15 @@
-import React from 'react';
 import s from './App.module.css';
-import { Button } from './components/Button';
-import { Chat } from './components/Chat';
-import { DisplayIcon, MicrophoneIcon, PhoneHangUpIcon, TvIcon, VideoCameraIcon } from './components/Icons';
-import { IParticipantsProps, Participants } from './components/Participants';
-import { IVideoPlayerProps, VideoPlayer } from './components/VideoPlayer';
-import { peerToPeer } from './utils/peerToPeer';
+import {
+  BrowserRouter,
+  Switch,
+  Route,
+  Link
+} from "react-router-dom";
+import { HomePage } from './pages/HomePage';
+import { ChatPage } from './pages/ChatPage';
+import React from 'react';
+import { IParticipantsProps } from './components/Participants';
+import { IVideoPlayerProps } from './components/VideoPlayer';
 
 const peerConfig = {
   'iceServers': [
@@ -85,9 +89,9 @@ interface IConnectionData {
 }
 
 function App() {
-  const [ isTalking, setIsTalking ] = React.useState<boolean>(false);
-  const [ peerId, setPeerId ] = React.useState<string>();
-  const [ connectedIds, setConnectedIds ] = React.useState<string[]>([]);
+  const [isTalking, setIsTalking] = React.useState<boolean>(false);
+  const [peerId, setPeerId] = React.useState<string>();
+  const [connectedIds, setConnectedIds] = React.useState<string[]>([]);
 
   const peerRef = React.useRef(
     new (window as any).Peer({ config: peerConfig })
@@ -111,94 +115,34 @@ function App() {
     });
   }, []);
 
+  function handleCreateChat() {
 
-
-  const inputConnectRef = React.useRef<HTMLInputElement>(null);
-  const connectRef = React.useRef<any>(null);
-
-  function handleClickConnect() {
-    if (inputConnectRef.current === null) {
-      return;
-    }
-    const { value } = inputConnectRef.current;
-    connectRef.current = peer.connect(value);
-    connectRef.current.on('open', () => {
-      connectRef.current.on('data', (data: any) => {
-        console.log('%c data ', 'background: #222; color: #bada55', data);
-      });
-    });
   }
+  
+  function handleConnectToChat() {
 
-  const inputMessageRef = React.useRef<HTMLInputElement>(null);
-
-  function handleClickMessage() {
-    if (inputMessageRef.current === null) {
-      return;
-    }
-    if (connectRef.current === null) {
-      console.log('%c Need set connect! ', 'background: #222; color: #bada55');
-      return;
-    }
-    const { value } = inputMessageRef.current;
-    connectRef.current.send(value);
   }
-
-
-
-
+  
   return (
     <div className={s['app']}>
-      <section>
-        <input type="text" ref={ inputConnectRef } />
-        <button onClick={ () => handleClickConnect() }>Connect</button>
-        <input type="text" ref={ inputMessageRef } />
-        <button onClick={ () => handleClickMessage() }>Send</button>
-      </section>
 
+      <BrowserRouter>
+        <Switch>
 
-      <section className={s['content']}>
-        <main>
-          <Participants videos={participantsVideos} />
-          <VideoPlayer {...videoPlayerOptions} />
-        </main>
-        <aside className={s['aside']}>
-          <Chat />
-        </aside>
-      </section>
+          <Route path="/chat">
+            <ChatPage />
+          </Route>
+          
+          <Route path="/">
+            <HomePage
+              handleCreateChat={handleCreateChat}
+              handleConnectToChat={handleConnectToChat}
+            />
+          </Route>
 
-      <section>
-        <footer>
-          <ul className={s['icons']}>
-            <li key="tv-icon">
-              <Button>
-                <TvIcon isOn={true} />
-              </Button>
-            </li>
-            <li key="display-icon">
-              <Button>
-                <DisplayIcon isOn={true} />
-              </Button>
-            </li>
-            <li key="video-camera-icon">
-              <Button>
-                <VideoCameraIcon isOn={true} />
-              </Button>
-            </li>
-            <li key="microphone-icon">
-              <Button>
-                <MicrophoneIcon isOn={true} />
-              </Button>
-            </li>
-            {isTalking && (
-              <li key="phone-icon">
-                <Button form="circle" backgroundColor="red">
-                  <PhoneHangUpIcon />
-                </Button>
-              </li>
-            )}
-          </ul>
-        </footer>
-      </section>
+        </Switch>
+      </BrowserRouter>
+
     </div>
   );
 }

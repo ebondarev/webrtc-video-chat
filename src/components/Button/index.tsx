@@ -1,20 +1,25 @@
 import s from './index.module.css';
 
 export interface IButtonProps {
-  form?: 'circle';
-  backgroundColor?: 'red';
+  type?: 'circle-red' | 'rectangle-grey';
+  onClick?: () => void;
 }
 
-export const Button: React.FC<IButtonProps> = ({ children, form, backgroundColor }) => {
-  let className = '';
-  if (backgroundColor === 'red') {
-    className += ` ${ s['button_red'] }`;
+export const Button: React.FC<IButtonProps> = ({ children, type, onClick }) => {
+  let className = [];
+  if (type === 'circle-red') {
+    className.push(s['button_circle-red']);
   }
-  if (form === 'circle') {
-    className += ` ${ s['button_circle'] }`;
+  if (type === 'rectangle-grey') {
+    className.push(s['button_rectangle-gray']);
   }
 
   return (
-    <button className={ `${ s['button'] } ${ className }` }>{children}</button>
+    <button
+      className={ `${ s['button'] } ${ className.join(' ') }` }
+      onClick={ onClick }
+    >
+      { children }
+    </button>
   )
 };
