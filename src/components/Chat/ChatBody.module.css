@@ -1,0 +1,11 @@
+.chat-body {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  row-gap: 20px;
+}
+
+.chat-body__item {
+  width: 100%;
+}

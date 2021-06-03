@@ -1,0 +1,15 @@
+.button {
+  background-color: transparent;
+  border: none;
+  color: #fff;
+  font-size: 30px;
+  cursor: pointer;
+}
+
+.button_red {
+  background-color: #ec5e5d;
+}
+
+.button_circle {
+  border-radius: 50%;
+}
