@@ -3,7 +3,8 @@ import {
   BrowserRouter,
   Switch,
   Route,
-  Link
+  Link,
+  useHistory
 } from "react-router-dom";
 import { HomePage } from './pages/HomePage';
 import { ChatPage } from './pages/ChatPage';
@@ -52,10 +53,15 @@ interface IConnectionData {
   connectedIds: string[];
 }
 
+export type IPeerToPeerNodeType = 'main' | 'client' | null;
+export type IPeerId = string;
+
 function App() {
-  const [ peerId, setPeerId ] = React.useState<string>();
+  const [ peerId, setPeerId ] = React.useState<IPeerId>('');
   const [ connectedIds, setConnectedIds ] = React.useState<string[]>([]);
-  const [ nodeType, setNodeType ] = React.useState<'main' | 'client' | null>(null);
+  const [ peerToPeerNodeType, setPeerToPeerNodeType ] = React.useState<IPeerToPeerNodeType>(null);
+
+  const history = useHistory();
 
   const peerRef = React.useRef(
     new (window as any).Peer({ config: peerConfig })
@@ -63,9 +69,11 @@ function App() {
   const peer = peerRef.current;
 
   React.useEffect(() => {
-    peer.on('open', (peerId: string) => {
+    peer.on('open', (peerId: IPeerId) => {
       setPeerId(peerId);
-      console.log('%c peerId ', 'background: #222; color: #bada55', peerId);
+      if (peerToPeerNodeType) {
+        history.push('/chat');
+      }
     });
 
     peer.on('connection', (data: IConnectionData) => {
@@ -79,33 +87,36 @@ function App() {
     });
   }, []);
 
-  function handleCreateChat() {
-    setNodeType('main');
+  function createChat() {
+    setPeerToPeerNodeType('main');
+    if (peerId) {
+      history.push('/chat');
+    }
   }
-  
-  function handleConnectToChat() {
-    setNodeType('client');
+
+  function connectToChat() {
+    setPeerToPeerNodeType('client');
+    if (peerId) {
+      history.push('/chat');
+    }
   }
-  
+
   return (
     <div className={s['app']}>
 
-      <BrowserRouter>
-        <Switch>
-
-          <Route path="/chat">
-            <ChatPage />
-          </Route>
-          
-          <Route path="/">
-            <HomePage
-              handleCreateChat={handleCreateChat}
-              handleConnectToChat={handleConnectToChat}
-            />
-          </Route>
-
-        </Switch>
-      </BrowserRouter>
+      <Route path="/chat">
+        <ChatPage
+          peerToPeerNodeType={ peerToPeerNodeType }
+          peerId={ peerId }
+        />
+      </Route>
+      
+      <Route exact path="/">
+        <HomePage
+          createChat={ createChat }
+          connectToChat={ connectToChat }
+        />
+      </Route>
 
     </div>
   );

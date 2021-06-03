@@ -4,3 +4,7 @@
   flex-direction: column;
   gap: 10px;
 }
+
+.button_fluid {
+  width: 100%;
+}

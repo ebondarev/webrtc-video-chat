@@ -15,4 +15,8 @@
   justify-content: center;
   gap: 10px;
 }
-  
+
+.button {
+  color: #fff;
+  font-size: 30px;
+}

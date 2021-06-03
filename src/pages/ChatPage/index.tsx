@@ -1,9 +1,13 @@
 import React from "react";
-import { Button } from "../../components/Button";
+import { useHistory } from "react-router";
+import { IPeerId, IPeerToPeerNodeType } from "../../App";
+// import { Button } from "../../components/Button";
+import { Button } from 'antd';
 import { Chat } from "../../components/Chat";
 import { TvIcon, DisplayIcon, VideoCameraIcon, MicrophoneIcon, PhoneHangUpIcon } from "../../components/Icons";
 import { IParticipantsProps, Participants } from "../../components/Participants";
 import { IVideoPlayerProps, VideoPlayer } from "../../components/VideoPlayer";
+import 'antd/dist/antd.css';
 import s from './index.module.css';
 
 
@@ -41,10 +45,15 @@ const participantsVideos: IParticipantsProps['videos'] = [
   },
 ];
 
-export interface IChatPageProps { }
+export interface IChatPageProps {
+  peerToPeerNodeType: IPeerToPeerNodeType;
+  peerId: IPeerId;
+}
 
-export const ChatPage: React.FC<IChatPageProps> = () => {
+export const ChatPage: React.FC<IChatPageProps> = ({ peerToPeerNodeType, peerId }) => {
   const [isTalking, setIsTalking] = React.useState<boolean>(false);
+
+  const history = useHistory();
 
   // const inputConnectRef = React.useRef<HTMLInputElement>(null);
   // const connectRef = React.useRef<any>(null);
@@ -76,6 +85,10 @@ export const ChatPage: React.FC<IChatPageProps> = () => {
   //   connectRef.current.send(value);
   // }
 
+  if ((peerToPeerNodeType === null) || (peerId === '')) {
+    history.push('/');
+  }
+
   return (
     <>
       {/* <section>
@@ -100,28 +113,44 @@ export const ChatPage: React.FC<IChatPageProps> = () => {
         <footer>
           <ul className={ s['icons'] }>
             <li key="tv-icon">
-              <Button>
+              <Button
+                type="text"
+                className={ s['button'] }
+              >
                 <TvIcon isOn={ true } />
               </Button>
             </li>
             <li key="display-icon">
-              <Button>
+              <Button
+                type="text"
+                className={ s['button'] }
+              >
                 <DisplayIcon isOn={ true } />
               </Button>
             </li>
             <li key="video-camera-icon">
-              <Button>
+              <Button
+                type="text"
+                className={ s['button'] }
+              >
                 <VideoCameraIcon isOn={ true } />
               </Button>
             </li>
             <li key="microphone-icon">
-              <Button>
+              <Button
+                type="text"
+                className={ s['button'] }
+              >
                 <MicrophoneIcon isOn={ true } />
               </Button>
             </li>
             {isTalking && (
               <li key="phone-icon">
-                <Button type="circle-red">
+                <Button
+                  shape="circle"
+                  danger
+                  className={ s['button'] }
+                >
                   <PhoneHangUpIcon />
                 </Button>
               </li>
