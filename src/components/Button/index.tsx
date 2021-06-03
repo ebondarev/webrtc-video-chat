@@ -17,7 +17,7 @@ export const Button: React.FC<IButtonProps> = ({ children, type, onClick }) => {
   return (
     <button
       className={ `${ s['button'] } ${ className.join(' ') }` }
-      onClick={ () => {console.log('click'); onClick && onClick(); } }
+      onClick={ () => onClick?.() }
     >
       { children }
     </button>

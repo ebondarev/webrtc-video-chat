@@ -80,12 +80,10 @@ function App() {
   }, []);
 
   function handleCreateChat() {
-    console.log('%c main ', 'background: #222; color: #bada55');
     setNodeType('main');
   }
   
   function handleConnectToChat() {
-    console.log('%c client ', 'background: #222; color: #bada55');
     setNodeType('client');
   }
   
