@@ -3,6 +3,7 @@ import { MessangerBody } from "./MessangerBody";
 import { MessangerHeader } from "./MessangerHeader";
 import { IMessangerMessage } from "./MessangerMessage";
 import s from './index.module.css';
+import { MessangerTextarea } from "./MessangerTextarea";
 
 const messages: IMessangerMessage[] = [
   {
@@ -45,6 +46,8 @@ export const Messanger: React.FC<IMessangerProps> = () => {
       <MessangerBody
         messages={ messages }
       />
+
+      <MessangerTextarea />
     </div>
   );
 };

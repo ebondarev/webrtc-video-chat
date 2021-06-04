@@ -3,21 +3,32 @@ import React from "react";
 import { Button, Input } from 'antd';
 import s from './index.module.css';
 import { IPeerId } from "../../App";
+import Modal from "antd/lib/modal/Modal";
 
 const { Search } = Input;
 
 export interface IHomePageProps {
   createChat: () => void;
   connectToChat: (idToConnect: IPeerId) => void;
+  setUserName: (name: string) => void;
 }
 
-export const HomePage: React.FC<IHomePageProps> = ({ createChat, connectToChat }) => {
+export const HomePage: React.FC<IHomePageProps> = ({ createChat, connectToChat, setUserName }) => {
+  const [ isModalVisible, setIsModalVisible ] = React.useState< boolean >(true);
 
   function handleSearch(idToConnect: IPeerId) {
     if (idToConnect === '') {
       return;
     }
     connectToChat(idToConnect);
+  }
+
+  function handleUserName(name: string) {
+    if (name === '') {
+      return;
+    }
+    setUserName(name);
+    setIsModalVisible(false);
   }
 
   return (
@@ -37,6 +48,20 @@ export const HomePage: React.FC<IHomePageProps> = ({ createChat, connectToChat }
         size="large"
         onSearch={ handleSearch }
       />
+
+      <Modal
+        title="Enter user name"
+        closable={ false }
+        visible={ isModalVisible }
+        footer={ null }
+      >
+        <Search
+          allowClear
+          enterButton="Apply"
+          size="large"
+          onSearch={ handleUserName }
+        />
+      </Modal>
     </div>
   );
 };

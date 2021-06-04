@@ -14,7 +14,7 @@ export const MessangerBody: React.FC<IMessangerBodyProps> = ({ messages }) => {
           <li key={ message.id } className={ s['messanger-body__item'] }>
             <MessangerMessage message={ message } />
           </li>
-        )
+        );
       })}
     </ul>
   );

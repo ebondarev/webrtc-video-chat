@@ -86,6 +86,7 @@ function App() {
   const [ peerId, setPeerId ] = React.useState<IPeerId>('');
   const [ idToConnect, setIdToConnect ] = React.useState<IPeerId>('');
   const [ peerToPeerNodeType, setPeerToPeerNodeType ] = React.useState<IPeerToPeerNodeType>(null);
+  const [ userName, setUserName ] = React.useState<string>('');
 
   const history = useHistory();
 
@@ -142,6 +143,7 @@ function App() {
         <HomePage
           createChat={ createChat }
           connectToChat={ connectToChat }
+          setUserName={ setUserName }
         />
       </Route>
 
