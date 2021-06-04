@@ -1,5 +1,22 @@
-.chat {
-  background-color: #353744;
-  border-radius: 2px;
-  padding: 10px;
+.content {
+  display: grid;
+  grid-template-columns: 1fr minmax(200px, 20%);
+  column-gap: 20px;
+}
+
+.aside {
+  display: flex;
+}
+
+.icons {
+  display: flex;
+  flex-direction: row;
+  list-style-type: none;
+  justify-content: center;
+  gap: 10px;
+}
+
+.button {
+  color: #fff;
+  font-size: 30px;
 }

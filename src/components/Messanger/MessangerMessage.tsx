@@ -1,7 +1,7 @@
-import { Avatar } from "./ChatAvatar";
+import { Avatar } from "../Avatar";
 import s from './ChatMessage.module.css';
 
-export interface IChatMessage {
+export interface IMessangerMessage {
   id: number;
   authorNickname: string;
   authorAvatarUrl: string;
@@ -9,11 +9,11 @@ export interface IChatMessage {
   status: 'active' | 'deleted' | 'joined';
 };
 
-export interface IChatMessageProps {
-  message: IChatMessage;
+export interface IMessangerMessageProps {
+  message: IMessangerMessage;
 };
 
-export const ChatMessage: React.FC<IChatMessageProps> = ({ message }) => {
+export const MessangerMessage: React.FC<IMessangerMessageProps> = ({ message }) => {
   if (message.status === 'active') {
     return (
       <div className={ `${ s['message'] } ${ s['message_active'] }` }>

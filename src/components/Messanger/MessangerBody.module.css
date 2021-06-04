@@ -1,4 +1,4 @@
-.chat-body {
+.messanger-body {
   list-style-type: none;
   margin: 0;
   padding: 0;
@@ -6,6 +6,6 @@
   row-gap: 20px;
 }
 
-.chat-body__item {
+.messanger-body__item {
   width: 100%;
 }

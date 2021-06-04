@@ -11,6 +11,14 @@ export interface IHomePageProps {
 }
 
 export const HomePage: React.FC<IHomePageProps> = ({ createChat, connectToChat }) => {
+
+  function handleSearch(event: string) {
+    if (event === '') {
+      return;
+    }
+    connectToChat();
+  }
+
   return (
     <div className={ s['home-page'] }>
       <Button
@@ -26,7 +34,7 @@ export const HomePage: React.FC<IHomePageProps> = ({ createChat, connectToChat }
         allowClear
         enterButton="Connect"
         size="large"
-        onSearch={ connectToChat }
+        onSearch={ handleSearch }
       />
     </div>
   );

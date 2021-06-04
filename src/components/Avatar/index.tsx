@@ -1,4 +1,4 @@
-import s from './ChatAvatar.module.css';
+import s from './index.module.css';
 
 export interface IAvatarProps {
   url: string;

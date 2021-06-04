@@ -7,8 +7,10 @@ import {
   useHistory
 } from "react-router-dom";
 import { HomePage } from './pages/HomePage';
-import { ChatPage } from './pages/ChatPage';
+import { ChatContainer } from './components/Chat';
 import React from 'react';
+import { RootChatPage } from './pages/RootChatPage';
+import { ClientChatPage } from './pages/ClientChatPage';
 
 const peerConfig = {
   'iceServers': [
@@ -53,7 +55,7 @@ interface IConnectionData {
   connectedIds: string[];
 }
 
-export type IPeerToPeerNodeType = 'main' | 'client' | null;
+export type IPeerToPeerNodeType = 'root' | 'client' | null;
 export type IPeerId = string;
 
 function App() {
@@ -88,29 +90,34 @@ function App() {
   }, []);
 
   function createChat() {
-    setPeerToPeerNodeType('main');
+    setPeerToPeerNodeType('root');
     if (peerId) {
-      history.push('/chat');
+      history.push('/root-chat');
     }
   }
 
   function connectToChat() {
     setPeerToPeerNodeType('client');
     if (peerId) {
-      history.push('/chat');
+      history.push('/client-chat');
     }
   }
 
   return (
-    <div className={s['app']}>
+    <div className={ s['app'] }>
 
-      <Route path="/chat">
-        <ChatPage
-          peerToPeerNodeType={ peerToPeerNodeType }
+      <Route path="/root-chat">
+        <RootChatPage
           peerId={ peerId }
         />
       </Route>
-      
+
+      <Route path="/client-chat">
+        <ClientChatPage
+          peerId={ peerId }
+        />
+      </Route>
+
       <Route exact path="/">
         <HomePage
           createChat={ createChat }
