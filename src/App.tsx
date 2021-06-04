@@ -10,6 +10,8 @@ import { HomePage } from './pages/HomePage';
 import React from 'react';
 import { RootChatPage } from './pages/RootChatPage';
 import { ClientChatPage } from './pages/ClientChatPage';
+import { Content } from './containers/Content';
+import { Button, Input } from 'antd';
 
 const peerConfig = {
   'iceServers': [
@@ -87,20 +89,15 @@ function App() {
 
   const history = useHistory();
 
-  const peerRef = React.useRef<PeerJS>(
-    new (window as any).Peer({ config: peerConfig })
-  );
-  const peer = peerRef.current;
+  const { current: peer } = React.useRef< PeerJS >( new (window as any).Peer({ config: peerConfig }) );
 
-  React.useEffect(() => {
+  React.useEffect(function fetchPeerId() {
     peer.on('open', (peerId: IPeerId) => {
-      console.log('%c peerId ', 'background: black; color: white;', peerId);
       setPeerId(peerId);
-      redirectToChatPage();
     });
   }, []);
 
-  function redirectToChatPage() {
+  React.useEffect(function redirectToChatPage() {
     if (peerId === '') {
       return;
     }
@@ -110,27 +107,27 @@ function App() {
     if (peerToPeerNodeType === 'client') {
       return history.push('/client-chat');
     }
-  }
+  }, [ peerId, peerToPeerNodeType ]);
 
   function createChat() {
     setPeerToPeerNodeType('root');
-    redirectToChatPage();
   }
 
   function connectToChat(idToConnect: IPeerId) {
     setPeerToPeerNodeType('client');
     setIdToConnect(idToConnect);
-    redirectToChatPage();
   }
 
   return (
     <div className={ s['app'] }>
 
       <Route path="/root-chat">
-        <RootChatPage
-          peerId={ peerId }
-          peer={ peer }
-        />
+        <Content.Column>
+          <RootChatPage
+            peerId={ peerId }
+            peer={ peer }
+          />
+        </Content.Column>
       </Route>
 
       <Route path="/client-chat">
