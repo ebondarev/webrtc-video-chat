@@ -1,5 +1,5 @@
 import { Avatar } from "../Avatar";
-import s from './ChatMessage.module.css';
+import s from './MessangerMessage.module.css';
 
 export interface IMessangerMessage {
   id: number;

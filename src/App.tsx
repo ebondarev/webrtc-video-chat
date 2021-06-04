@@ -7,7 +7,7 @@ import {
   useHistory
 } from "react-router-dom";
 import { HomePage } from './pages/HomePage';
-import { ChatContainer } from './components/Chat';
+import { Chat } from './components/Chat';
 import React from 'react';
 import { RootChatPage } from './pages/RootChatPage';
 import { ClientChatPage } from './pages/ClientChatPage';
@@ -55,52 +55,77 @@ interface IConnectionData {
   connectedIds: string[];
 }
 
+export interface PeerDataConnection {
+  send: (data: any) => void;
+  close: () => void;
+  on: (
+    event: PeerEvent,
+    callback: (data: any) => void
+  ) => void;
+  dataChannel: RTCDataChannel;
+  label: string;
+  metadata: any;
+  open: boolean;
+  peerConnection: RTCPeerConnection;
+  peer: IPeerId;
+  reliable: boolean;
+  serialization: 'binary' | 'binary-utf8' | 'json' | 'none';
+  type: string;
+  bufferSize: number;
+}
+
 export type IPeerToPeerNodeType = 'root' | 'client' | null;
 export type IPeerId = string;
+export type PeerEvent = 'open' | 'connection' | 'call' | 'close' | 'disconnected' | 'error';
+export type PeerJS = {
+  connect: (id: IPeerId) => PeerDataConnection;
+  on: (
+    event: PeerEvent,
+    fn: (data: any) => void
+  ) => void;
+};
 
 function App() {
   const [ peerId, setPeerId ] = React.useState<IPeerId>('');
-  const [ connectedIds, setConnectedIds ] = React.useState<string[]>([]);
+  const [ idToConnect, setIdToConnect ] = React.useState<IPeerId>('');
   const [ peerToPeerNodeType, setPeerToPeerNodeType ] = React.useState<IPeerToPeerNodeType>(null);
 
   const history = useHistory();
 
-  const peerRef = React.useRef(
+  const peerRef = React.useRef<PeerJS>(
     new (window as any).Peer({ config: peerConfig })
   );
   const peer = peerRef.current;
 
   React.useEffect(() => {
     peer.on('open', (peerId: IPeerId) => {
+      console.log('%c peerId ', 'background: black; color: white;', peerId);
       setPeerId(peerId);
-      if (peerToPeerNodeType) {
-        history.push('/chat');
-      }
-    });
-
-    peer.on('connection', (data: IConnectionData) => {
-      console.log('%c connection data ', 'background: #222; color: #bada55', data);
-      // data.connectedIds - массив id к которым приконнекчен
-      // setConnectedIds(
-      //   Array.from(
-      //     new Set([...connectedIds, ...data.connectedIds])
-      //   )
-      // );
+      redirectToChatPage();
     });
   }, []);
 
-  function createChat() {
-    setPeerToPeerNodeType('root');
-    if (peerId) {
-      history.push('/root-chat');
+  function redirectToChatPage() {
+    if (peerId === '') {
+      return;
+    }
+    if (peerToPeerNodeType === 'root') {
+      return history.push('/root-chat');
+    }
+    if (peerToPeerNodeType === 'client') {
+      return history.push('/client-chat');
     }
   }
 
-  function connectToChat() {
+  function createChat() {
+    setPeerToPeerNodeType('root');
+    redirectToChatPage();
+  }
+
+  function connectToChat(idToConnect: IPeerId) {
     setPeerToPeerNodeType('client');
-    if (peerId) {
-      history.push('/client-chat');
-    }
+    setIdToConnect(idToConnect);
+    redirectToChatPage();
   }
 
   return (
@@ -109,12 +134,15 @@ function App() {
       <Route path="/root-chat">
         <RootChatPage
           peerId={ peerId }
+          peer={ peer }
         />
       </Route>
 
       <Route path="/client-chat">
         <ClientChatPage
           peerId={ peerId }
+          idToConnect= { idToConnect }
+          peer={ peer }
         />
       </Route>
 

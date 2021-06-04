@@ -44,12 +44,11 @@ const participantsVideos: IParticipantsProps['videos'] = [
   },
 ];
 
-export interface IChatContainerProps {
-  peerToPeerNodeType: IPeerToPeerNodeType;
+export interface IChatProps {
   peerId: IPeerId;
 }
 
-export const ChatContainer: React.FC<IChatContainerProps> = ({ peerToPeerNodeType, peerId }) => {
+export const Chat: React.FC<IChatProps> = ({ peerId }) => {
   const [isTalking, setIsTalking] = React.useState<boolean>(false);
 
   const history = useHistory();
@@ -84,7 +83,7 @@ export const ChatContainer: React.FC<IChatContainerProps> = ({ peerToPeerNodeTyp
   //   connectRef.current.send(value);
   // }
 
-  if ((peerToPeerNodeType === null) || (peerId === '')) {
+  if (peerId === '') {
     history.push('/');
   }
 

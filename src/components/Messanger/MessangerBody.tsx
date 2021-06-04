@@ -1,6 +1,6 @@
 import React from "react";
 import { MessangerMessage, IMessangerMessage } from "./MessangerMessage";
-import s from './ChatBody.module.css';
+import s from './MessangerBody.module.css';
 
 export interface IMessangerBodyProps {
   messages: IMessangerMessage[];

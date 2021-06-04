@@ -1,4 +1,4 @@
-import s from './ChatHeader.module.css';
+import s from './MessangerHeader.module.css';
 
 export interface IMessangerHeaderProps {
   title: string;
