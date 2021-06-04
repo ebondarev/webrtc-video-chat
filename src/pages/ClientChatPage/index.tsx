@@ -13,7 +13,7 @@ export const ClientChatPage: React.FC<IClientChatPageProps> = ({ peerId, idToCon
   React.useEffect(function setConnect() {
     const connect = peer.connect(idToConnect);
     console.log('%c connection ', 'background: black; color: white;', connect);
-  }, []);
+  }, [ idToConnect, peer ]);
 
   return (
     <Chat peerId={ peerId } />

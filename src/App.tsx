@@ -1,13 +1,12 @@
 import s from './App.module.css';
 import {
-  BrowserRouter,
-  Switch,
+  // BrowserRouter,
+  // Switch,
   Route,
-  Link,
+  // Link,
   useHistory
 } from "react-router-dom";
 import { HomePage } from './pages/HomePage';
-import { Chat } from './components/Chat';
 import React from 'react';
 import { RootChatPage } from './pages/RootChatPage';
 import { ClientChatPage } from './pages/ClientChatPage';
@@ -50,10 +49,6 @@ const peerConfig = {
     }
   ]
 };
-
-interface IConnectionData {
-  connectedIds: string[];
-}
 
 export interface PeerDataConnection {
   send: (data: any) => void;

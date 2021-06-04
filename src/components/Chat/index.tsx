@@ -1,6 +1,6 @@
 import React from "react";
 import { useHistory } from "react-router";
-import { IPeerId, IPeerToPeerNodeType } from "../../App";
+import { IPeerId } from "../../App";
 // import { Button } from "../../components/Button";
 import { Button } from 'antd';
 import { Messanger } from "../Messanger";
