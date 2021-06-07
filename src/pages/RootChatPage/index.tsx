@@ -32,6 +32,7 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
         video.onloadedmetadata = function (e) {
             video.play();
         };
+        document.body.appendChild(video);
       }, 1500);
       // var video = document.createElement('video') as HTMLVideoElement;
       // video.srcObject = call.remoteStream;
