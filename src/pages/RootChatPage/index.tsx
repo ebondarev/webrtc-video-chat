@@ -37,6 +37,7 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
   React.useEffect(function handleClientsConnection() {
     const _connectedClientsIds: IPeerId[] = [];
     peerJS.on('connection', (connect: PeerDataConnection) => {
+      console.log('%c root. connection ', 'background: #222; color: #bada55');
       const peerId = connect.peer;
       if (_connectedClientsIds.includes(peerId)) {
         return;
@@ -62,7 +63,7 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
   }, [ peerJS ]);
 
   React.useEffect(function sendToClientsConnectedIds() {
-    console.log('%c sendToClientsConnectedIds ', 'background: #222; color: #bada55');
+    console.log('%c sendToClientsConnectedIds ', 'background: #222; color: #bada55', connectedClientsIds);
     connectedClientsIds.forEach((id) => {
       console.log('%c root connectedClientsIds ', 'background: #222; color: #bada55', id, connectedClientsIds);
       peerJS.connect(id).send(connectedClientsIds);
