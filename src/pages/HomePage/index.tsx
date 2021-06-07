@@ -1,5 +1,4 @@
 import React from "react";
-// import { Button } from "../../components/Button";
 import { Button, Input } from 'antd';
 import s from './index.module.css';
 import { IPeerId } from "../../App";

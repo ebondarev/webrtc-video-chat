@@ -1,25 +1,26 @@
 import React from "react";
-import { IPeerId, PeerDataConnection, PeerJS } from "../../App";
+import { IPeerId } from "../../App";
 import { Chat } from "../../components/Chat";
 import { Typography } from 'antd';
+import { PeerDataConnection, PeerJS } from "../../AppSlice";
 
 export interface IRootChatPage {
   peerId: IPeerId;
-  peer: PeerJS;
+  peerJS: PeerJS;
 }
 
-export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peer }) => {
+export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
   const [ connectedClientsIds, setConnectedClientsIds ] = React.useState< IPeerId[] >([]);
 
   React.useEffect(function handleClientsConnection() {
-    peer.on('connection', (connect: PeerDataConnection) => {
+    peerJS.on('connection', (connect: PeerDataConnection) => {
       const peerId = connect.peer;
       if (connectedClientsIds.includes(peerId)) {
         return;
       }
       setConnectedClientsIds((ids) => [...ids, peerId]);
     });
-  }, [ peer ]);
+  }, [ peerJS ]);
 
   React.useEffect(function handleChangeConnectedClients() {
     console.log('%c connectedClientsIds ', 'background: black; color: white;', connectedClientsIds);

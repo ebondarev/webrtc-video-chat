@@ -9,89 +9,23 @@ import { RootChatPage } from './pages/RootChatPage';
 import { ClientChatPage } from './pages/ClientChatPage';
 import { Content } from './containers/Content';
 import { useAppDispatch, useAppSelector } from './hooks';
-import { setIdToConnect, setPeerId, setPeerToPeerNodeType, setUserName } from './AppSlice';
+import { setIdToConnect, setPeerId, setPeerToPeerNodeType, setUserName as setUserNameAction } from './AppSlice';
 
-const peerConfig = {
-  'iceServers': [
-    { url: 'stun:stun01.sipphone.com' },
-    { url: 'stun:stun.ekiga.net' },
-    { url: 'stun:stun.fwdnet.net' },
-    { url: 'stun:stun.ideasip.com' },
-    { url: 'stun:stun.iptel.org' },
-    { url: 'stun:stun.rixtelecom.se' },
-    { url: 'stun:stun.schlund.de' },
-    { url: 'stun:stun.l.google.com:19302' },
-    { url: 'stun:stun1.l.google.com:19302' },
-    { url: 'stun:stun2.l.google.com:19302' },
-    { url: 'stun:stun3.l.google.com:19302' },
-    { url: 'stun:stun4.l.google.com:19302' },
-    { url: 'stun:stunserver.org' },
-    { url: 'stun:stun.softjoys.com' },
-    { url: 'stun:stun.voiparound.com' },
-    { url: 'stun:stun.voipbuster.com' },
-    { url: 'stun:stun.voipstunt.com' },
-    { url: 'stun:stun.voxgratia.org' },
-    { url: 'stun:stun.xten.com' },
-    {
-      url: 'turn:numb.viagenie.ca',
-      credential: 'muazkh',
-      username: 'webrtc@live.com'
-    },
-    {
-      url: 'turn:192.158.29.39:3478?transport=udp',
-      credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
-      username: '28224511:1379330808'
-    },
-    {
-      url: 'turn:192.158.29.39:3478?transport=tcp',
-      credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
-      username: '28224511:1379330808'
-    }
-  ]
-};
 
-export interface PeerDataConnection {
-  send: (data: any) => void;
-  close: () => void;
-  on: (
-    event: PeerEvent,
-    callback: (data: any) => void
-  ) => void;
-  dataChannel: RTCDataChannel;
-  label: string;
-  metadata: any;
-  open: boolean;
-  peerConnection: RTCPeerConnection;
-  peer: IPeerId;
-  reliable: boolean;
-  serialization: 'binary' | 'binary-utf8' | 'json' | 'none';
-  type: string;
-  bufferSize: number;
-}
 
 export type IPeerId = string;
-export type PeerEvent = 'open' | 'connection' | 'call' | 'close' | 'disconnected' | 'error';
-export type PeerJS = {
-  connect: (id: IPeerId) => PeerDataConnection;
-  on: (
-    event: PeerEvent,
-    fn: (data: any) => void
-  ) => void;
-};
 
 function App() {
   const dispatch = useAppDispatch();
+  const history = useHistory();
 
   const peerId = useAppSelector((state) => state.app.peerId);
   const idToConnect = useAppSelector((state) => state.app.idToConnect);
   const peerToPeerNodeType = useAppSelector((state) => state.app.peerToPeerNodeType);
-
-  const history = useHistory();
-
-  const { current: peer } = React.useRef< PeerJS >( new (window as any).Peer({ config: peerConfig }) );
+  const peerJS = useAppSelector((state) => state.app.peerJS);
 
   React.useEffect(function fetchPeerId() {
-    peer.on('open', (peerId: IPeerId) => {
+    peerJS.on('open', (peerId: IPeerId) => {
       dispatch(setPeerId(peerId));
     });
   }, []);
@@ -117,6 +51,10 @@ function App() {
     dispatch(setIdToConnect(idToConnect));
   }
 
+  function setUserName(name: string) {
+    dispatch(setUserNameAction(name));
+  }
+
   return (
     <div className={ s['app'] }>
 
@@ -124,7 +62,7 @@ function App() {
         <Content.Column>
           <RootChatPage
             peerId={ peerId }
-            peer={ peer }
+            peerJS={ peerJS }
           />
         </Content.Column>
       </Route>
@@ -133,7 +71,7 @@ function App() {
         <ClientChatPage
           peerId={ peerId }
           idToConnect= { idToConnect }
-          peer={ peer }
+          peerJS={ peerJS }
         />
       </Route>
 
@@ -141,7 +79,7 @@ function App() {
         <HomePage
           createChat={ createChat }
           connectToChat={ connectToChat }
-          setUserName={ (name) => dispatch(setUserName(name)) }
+          setUserName={ setUserName }
         />
       </Route>
 

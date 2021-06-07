@@ -1,19 +1,20 @@
 import React from "react";
-import { IPeerId, PeerJS } from "../../App"
+import { IPeerId } from "../../App"
+import { PeerJS } from "../../AppSlice";
 import { Chat } from "../../components/Chat";
 
 export interface IClientChatPageProps {
   peerId: IPeerId;
   idToConnect: IPeerId;
-  peer: PeerJS;
+  peerJS: PeerJS;
 }
 
-export const ClientChatPage: React.FC<IClientChatPageProps> = ({ peerId, idToConnect, peer }) => {
+export const ClientChatPage: React.FC<IClientChatPageProps> = ({ peerId, idToConnect, peerJS }) => {
 
   React.useEffect(function setConnect() {
-    const connect = peer.connect(idToConnect);
+    const connect = peerJS.connect(idToConnect);
     console.log('%c connection ', 'background: black; color: white;', connect);
-  }, [ idToConnect, peer ]);
+  }, [ idToConnect, peerJS ]);
 
   return (
     <Chat peerId={ peerId } />
