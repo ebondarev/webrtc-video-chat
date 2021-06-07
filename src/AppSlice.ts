@@ -165,7 +165,7 @@ export const appSlice = createSlice({
       state.rtc.remoteStreams = [
         ...state.rtc.remoteStreams,
         {
-          id: uuidv4(),
+          id: action.payload.id,
           srcObject: action.payload,
         }
       ] as any;
