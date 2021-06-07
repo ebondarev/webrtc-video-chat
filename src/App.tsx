@@ -12,15 +12,6 @@ import { useAppDispatch, useAppSelector } from './hooks';
 import { addRemoteStream, setIdToConnect, setPeerId, setPeerToPeerNodeType, setUserName as setUserNameAction } from './AppSlice';
 
 
-const constraints: MediaStreamConstraints = {
-  audio: true,
-  video: {
-    width: 320,
-    height: 240,
-    facingMode: 'user',
-  },
-};
-
 export type IPeerId = string;
 
 function App() {
@@ -49,24 +40,6 @@ function App() {
       return history.push('/client-chat');
     }
   }, [ peerId, peerToPeerNodeType ]);
-
-  React.useEffect(function connectToChat() {
-    if (idToConnect === '') {
-      return;
-    }
-
-    navigator.mediaDevices.getUserMedia(constraints)
-      .then((localStream) => {
-        const call = peerJS.call(idToConnect, localStream);
-        call.on('stream', (data) => {
-          const remoteStream = data as MediaStream;
-          dispatch(addRemoteStream(remoteStream));
-        });
-      })
-      .catch((error) => {
-
-      });
-  }, [ idToConnect ]);
 
   function createChat() {
     dispatch(setPeerToPeerNodeType('root'));

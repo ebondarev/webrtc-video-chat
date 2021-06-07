@@ -11,14 +11,23 @@ export interface IRootChatPage {
   peerJS: PeerJS;
 }
 
+const constraints: MediaStreamConstraints = {
+  audio: true,
+  video: {
+    width: 320,
+    height: 240,
+    facingMode: 'user',
+  },
+};
+
 export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
   const dispatch = useAppDispatch();
 
   const connectedClientsIds = useAppSelector((state) => state.app.rtc.connectedClientsIds);
-  const remoteStreams = useAppSelector((state) => state.app.rtc.remoteStreams);
+
+  const localStreamRef = React.useRef<MediaStream>();
 
   React.useEffect(function handleClientsConnection() {
-    console.log('%c effect ', 'background: #222; color: #bada55');
     peerJS.on('connection', (connect: PeerDataConnection) => {
       const peerId = connect.peer;
       if (connectedClientsIds.includes(peerId)) {
@@ -29,12 +38,12 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
 
     const remoteStreams: MediaStream[] = []; // dispatch срабатывает с задержкой поэтому создана эта переменная
     peerJS.on('call', (call) => {
-      call.answer();
+      if (localStreamRef.current) {
+        call.answer(localStreamRef.current);
+      }
       call.on('stream', (stream: MediaStream) => {
-        const isDublicateStream = remoteStreams.some((_stream) => {
-          return stream.id === _stream.id;
-        });
-        if (isDublicateStream) {
+        const isDuplicateStream = remoteStreams.some((_stream) => stream.id === _stream.id);
+        if (isDuplicateStream) {
           return;
         }
         dispatch(addRemoteStream(stream));
@@ -42,6 +51,13 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
       });
     });
   }, [ peerJS ]);
+
+  React.useEffect(function getLocalStream() {
+    navigator.mediaDevices.getUserMedia(constraints)
+      .then((stream) => {
+        localStreamRef.current = stream;
+      });
+  }, []);
 
   return (
     <>
