@@ -9,6 +9,7 @@ import { RootChatPage } from './pages/RootChatPage';
 import { ClientChatPage } from './pages/ClientChatPage';
 import { Content } from './containers/Content';
 import { useAppDispatch, useAppSelector } from './hooks';
+import { setIdToConnect, setPeerId, setPeerToPeerNodeType, setUserName } from './AppSlice';
 
 const peerConfig = {
   'iceServers': [
@@ -68,7 +69,6 @@ export interface PeerDataConnection {
   bufferSize: number;
 }
 
-export type IPeerToPeerNodeType = 'root' | 'client' | null;
 export type IPeerId = string;
 export type PeerEvent = 'open' | 'connection' | 'call' | 'close' | 'disconnected' | 'error';
 export type PeerJS = {
@@ -80,16 +80,11 @@ export type PeerJS = {
 };
 
 function App() {
-  // TODO: add redux!!!!!!!!!!!!!!
-  
-  // const [ peerId, setPeerId ] = React.useState<IPeerId>('');
-
   const dispatch = useAppDispatch();
-  const peerId = useAppSelector((state) => state.app.peerId);
 
-  const [ idToConnect, setIdToConnect ] = React.useState<IPeerId>('');
-  const [ peerToPeerNodeType, setPeerToPeerNodeType ] = React.useState<IPeerToPeerNodeType>(null);
-  const [ userName, setUserName ] = React.useState<string>('');
+  const peerId = useAppSelector((state) => state.app.peerId);
+  const idToConnect = useAppSelector((state) => state.app.idToConnect);
+  const peerToPeerNodeType = useAppSelector((state) => state.app.peerToPeerNodeType);
 
   const history = useHistory();
 
@@ -97,7 +92,7 @@ function App() {
 
   React.useEffect(function fetchPeerId() {
     peer.on('open', (peerId: IPeerId) => {
-      setPeerId(peerId);
+      dispatch(setPeerId(peerId));
     });
   }, []);
 
@@ -114,12 +109,12 @@ function App() {
   }, [ peerId, peerToPeerNodeType ]);
 
   function createChat() {
-    setPeerToPeerNodeType('root');
+    dispatch(setPeerToPeerNodeType('root'));
   }
 
   function connectToChat(idToConnect: IPeerId) {
-    setPeerToPeerNodeType('client');
-    setIdToConnect(idToConnect);
+    dispatch(setPeerToPeerNodeType('client'));
+    dispatch(setIdToConnect(idToConnect));
   }
 
   return (
@@ -146,7 +141,7 @@ function App() {
         <HomePage
           createChat={ createChat }
           connectToChat={ connectToChat }
-          setUserName={ setUserName }
+          setUserName={ (name) => dispatch(setUserName(name)) }
         />
       </Route>
 
