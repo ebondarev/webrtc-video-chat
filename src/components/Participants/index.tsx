@@ -2,8 +2,12 @@ import React from "react";
 import { IVideoPlayerProps, VideoPlayer } from "../VideoPlayer"
 import s from './index.module.css';
 
+export type IParticipantsVideo = IVideoPlayerProps & {
+  id: string;
+};
+
 export interface IParticipantsProps {
-  videos: (IVideoPlayerProps & { id: number; })[];
+  videos: IParticipantsVideo[];
 }
 
 export const Participants: React.FC<IParticipantsProps> = ({ videos }) => {

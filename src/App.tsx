@@ -9,7 +9,7 @@ import { RootChatPage } from './pages/RootChatPage';
 import { ClientChatPage } from './pages/ClientChatPage';
 import { Content } from './containers/Content';
 import { useAppDispatch, useAppSelector } from './hooks';
-import { setIdToConnect, setPeerId, setPeerToPeerNodeType, setUserName as setUserNameAction } from './AppSlice';
+import { addRemoteStream, setIdToConnect, setPeerId, setPeerToPeerNodeType, setUserName as setUserNameAction } from './AppSlice';
 
 
 
@@ -19,10 +19,10 @@ function App() {
   const dispatch = useAppDispatch();
   const history = useHistory();
 
-  const peerId = useAppSelector((state) => state.app.peerId);
-  const idToConnect = useAppSelector((state) => state.app.idToConnect);
-  const peerToPeerNodeType = useAppSelector((state) => state.app.peerToPeerNodeType);
-  const peerJS = useAppSelector((state) => state.app.peerJS);
+  const peerId = useAppSelector((state) => state.app.rtc.peerId);
+  const idToConnect = useAppSelector((state) => state.app.rtc.idToConnect);
+  const peerToPeerNodeType = useAppSelector((state) => state.app.rtc.peerToPeerNodeType);
+  const peerJS = useAppSelector((state) => state.app.rtc.peerJS);
 
   React.useEffect(function fetchPeerId() {
     peerJS.on('open', (peerId: IPeerId) => {
@@ -41,6 +41,33 @@ function App() {
       return history.push('/client-chat');
     }
   }, [ peerId, peerToPeerNodeType ]);
+
+  React.useEffect(function connectToChat() {
+    if (idToConnect === '') {
+      return;
+    }
+
+    const constraints: MediaStreamConstraints = {
+      audio: true,
+      video: {
+        width: 320,
+        height: 240,
+        facingMode: 'user',
+      },
+    };
+
+    navigator.mediaDevices.getUserMedia(constraints)
+      .then((localStream) => {
+        const call = peerJS.call(idToConnect, localStream);
+        call.on('stream', (data) => {
+          const remoteStream = data as MediaStream;
+          dispatch(addRemoteStream(remoteStream));
+        });
+      })
+      .catch((error) => {
+
+      });
+  }, [ idToConnect ]);
 
   function createChat() {
     dispatch(setPeerToPeerNodeType('root'));

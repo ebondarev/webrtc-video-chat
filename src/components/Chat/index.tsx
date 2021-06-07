@@ -7,6 +7,7 @@ import { TvIcon, DisplayIcon, VideoCameraIcon, MicrophoneIcon, PhoneHangUpIcon }
 import { IParticipantsProps, Participants } from "../Participants";
 import { IVideoPlayerProps, VideoPlayer } from "../VideoPlayer";
 import s from './index.module.css';
+import { useAppSelector } from "../../hooks";
 
 
 const videoPlayerOptions: IVideoPlayerProps = {
@@ -21,7 +22,7 @@ const videoPlayerOptions: IVideoPlayerProps = {
 
 const participantsVideos: IParticipantsProps['videos'] = [
   {
-    id: 0,
+    id: '0',
     autoplay: true,
     width: 300,
     height: 150,
@@ -31,7 +32,7 @@ const participantsVideos: IParticipantsProps['videos'] = [
     }],
     fluid: true,
   }, {
-    id: 1,
+    id: '1',
     autoplay: true,
     width: 300,
     height: 150,
@@ -48,9 +49,11 @@ export interface IChatProps {
 }
 
 export const Chat: React.FC<IChatProps> = ({ peerId }) => {
+  const history = useHistory();
+  
   const [isTalking, setIsTalking] = React.useState<boolean>(false);
 
-  const history = useHistory();
+  const participantsVideos = useAppSelector((state) => state.app.rtc.remoteStreams);
 
   if (peerId === '') {
     history.push('/');
