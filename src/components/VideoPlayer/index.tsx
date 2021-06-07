@@ -3,6 +3,7 @@ import React from 'react';
 export interface IVideoPlayerProps extends HTMLVideoElement { }
 
 export const VideoPlayer: React.FC<IVideoPlayerProps> = React.memo((props) => {
+  console.log('%c props ', 'background: #222; color: #bada55', props);
   const { srcObject } = props;
 
   const videoNode: React.MutableRefObject<HTMLVideoElement | null> = React.useRef(null);
