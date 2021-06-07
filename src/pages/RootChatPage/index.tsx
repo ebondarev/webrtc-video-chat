@@ -25,7 +25,7 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
       (window as any).my_call = call;
       console.log('%c call ', 'background: #222; color: #bada55', call);
       call.answer();
-      var video = document.getElementById('video') as HTMLVideoElement;
+      var video = document.createElement('video') as HTMLVideoElement;
       video.srcObject = call.remoteStream;
       document.body.appendChild(video);
       // call.on('stream', (stream: MediaStream) => {
