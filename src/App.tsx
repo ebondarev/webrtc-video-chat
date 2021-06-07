@@ -1,9 +1,6 @@
 import s from './App.module.css';
 import {
-  // BrowserRouter,
-  // Switch,
   Route,
-  // Link,
   useHistory
 } from "react-router-dom";
 import { HomePage } from './pages/HomePage';
@@ -11,7 +8,7 @@ import React from 'react';
 import { RootChatPage } from './pages/RootChatPage';
 import { ClientChatPage } from './pages/ClientChatPage';
 import { Content } from './containers/Content';
-import { Button, Input } from 'antd';
+import { useAppDispatch, useAppSelector } from './hooks';
 
 const peerConfig = {
   'iceServers': [
@@ -83,7 +80,13 @@ export type PeerJS = {
 };
 
 function App() {
-  const [ peerId, setPeerId ] = React.useState<IPeerId>('');
+  // TODO: add redux!!!!!!!!!!!!!!
+  
+  // const [ peerId, setPeerId ] = React.useState<IPeerId>('');
+
+  const dispatch = useAppDispatch();
+  const peerId = useAppSelector((state) => state.app.peerId);
+
   const [ idToConnect, setIdToConnect ] = React.useState<IPeerId>('');
   const [ peerToPeerNodeType, setPeerToPeerNodeType ] = React.useState<IPeerToPeerNodeType>(null);
   const [ userName, setUserName ] = React.useState<string>('');

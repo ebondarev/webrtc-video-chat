@@ -5,15 +5,18 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter, Switch } from 'react-router-dom';
 import 'antd/dist/antd.css';
+import { store } from './store';
+import { Provider } from 'react-redux';
 
 ReactDOM.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <Switch>
-        <App />
-      </Switch>
-    </BrowserRouter>
-
+    <Provider store={ store }>
+      <BrowserRouter>
+        <Switch>
+          <App />
+        </Switch>
+      </BrowserRouter>
+    </Provider>
   </React.StrictMode>,
   document.getElementById('root')
 );

@@ -1,7 +1,6 @@
 import React from "react";
 import { useHistory } from "react-router";
 import { IPeerId } from "../../App";
-// import { Button } from "../../components/Button";
 import { Button } from 'antd';
 import { Messanger } from "../Messanger";
 import { TvIcon, DisplayIcon, VideoCameraIcon, MicrophoneIcon, PhoneHangUpIcon } from "../Icons";
@@ -53,49 +52,12 @@ export const Chat: React.FC<IChatProps> = ({ peerId }) => {
 
   const history = useHistory();
 
-  // const inputConnectRef = React.useRef<HTMLInputElement>(null);
-  // const connectRef = React.useRef<any>(null);
-
-  // function handleClickConnect() {
-  //   if (inputConnectRef.current === null) {
-  //     return;
-  //   }
-  //   const { value } = inputConnectRef.current;
-  //   connectRef.current = peer.connect(value);
-  //   connectRef.current.on('open', () => {
-  //     connectRef.current.on('data', (data: any) => {
-  //       console.log('%c data ', 'background: #222; color: #bada55', data);
-  //     });
-  //   });
-  // }
-
-  // const inputMessageRef = React.useRef<HTMLInputElement>(null);
-
-  // function handleClickMessage() {
-  //   if (inputMessageRef.current === null) {
-  //     return;
-  //   }
-  //   if (connectRef.current === null) {
-  //     console.log('%c Need set connect! ', 'background: #222; color: #bada55');
-  //     return;
-  //   }
-  //   const { value } = inputMessageRef.current;
-  //   connectRef.current.send(value);
-  // }
-
   if (peerId === '') {
     history.push('/');
   }
 
   return (
     <>
-      {/* <section>
-        <input type="text" ref={ inputConnectRef } />
-        <button onClick={ () => handleClickConnect() }>Connect</button>
-        <input type="text" ref={ inputMessageRef } />
-        <button onClick={ () => handleClickMessage() }>Send</button>
-      </section>
-      */}
       <section className={ s['content'] }>
         <main>
           <Participants videos={ participantsVideos } />
