@@ -26,6 +26,7 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
 
     peerJS.on('call', (call) => {
       call.answer();
+      console.log('%c dispatch addRemoteStream ', 'background: #222; color: #bada55', call.remoteStream);
       dispatch(addRemoteStream(call.remoteStream));
     });
   }, [ peerJS ]);

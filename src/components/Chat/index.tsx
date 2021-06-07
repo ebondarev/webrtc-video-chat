@@ -16,9 +16,10 @@ export interface IChatProps {
 export const Chat: React.FC<IChatProps> = ({ peerId }) => {
   const history = useHistory();
   
-  const [isTalking, setIsTalking] = React.useState<boolean>(false);
+  const [ isTalking, setIsTalking ] = React.useState<boolean>(false);
 
   const participantsVideos = useAppSelector((state) => state.app.rtc.remoteStreams);
+  console.log('%c participantsVideos ', 'background: #222; color: #bada55', participantsVideos);
 
   if (peerId === '') {
     history.push('/');
