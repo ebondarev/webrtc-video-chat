@@ -19,6 +19,6 @@ export const VideoPlayer: React.FC<IVideoPlayerProps> = (props) => {
   }, [ srcObject ]);
 
   return (
-    <video ref={ videoNode }></video>
+    <video ref={ videoNode } style={{ border: '2px solid red' }}></video>
   );
 };
