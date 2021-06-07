@@ -17,6 +17,7 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
   const remoteStreams = useAppSelector((state) => state.app.rtc.remoteStreams);
 
   React.useEffect(function handleClientsConnection() {
+    console.log('%c effect ', 'background: #222; color: #bada55');
     peerJS.on('connection', (connect: PeerDataConnection) => {
       const peerId = connect.peer;
       if (connectedClientsIds.includes(peerId)) {
@@ -28,6 +29,7 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
     peerJS.on('call', (call) => {
       call.answer();
       call.on('stream', (stream: MediaStream) => {
+        console.log('%c stream ', 'background: #222; color: #bada55');
         const isDublicateStream = remoteStreams.some((_stream) => stream.id === _stream.id);
         if (isDublicateStream) {
           return;
