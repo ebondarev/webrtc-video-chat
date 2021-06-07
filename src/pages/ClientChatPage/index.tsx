@@ -22,28 +22,34 @@ const constraints: MediaStreamConstraints = {
 export const ClientChatPage: React.FC<IClientChatPageProps> = ({ peerId, idToConnect, peerJS }) => {
   const dispatch = useAppDispatch();
 
+  React.useEffect(function listenRemoteData() {
+    peerJS.on('connection', (connection) => {
+      connection.on('data', (data: any) => {
+        console.log('%c client. data ', 'background: #222; color: #bada55', data);
+      });
+    })
+  }, [ peerJS ]);
+
   React.useEffect(function setConnect() {
     if (idToConnect === '') {
       return;
     }
 
-    const remoteStreams: MediaStream[] = []; // dispatch срабатывает с задержкой поэтому создана эта переменная
+    const _remoteStreams: MediaStream[] = []; // dispatch срабатывает с задержкой поэтому создана эта переменная
     navigator.mediaDevices.getUserMedia(constraints)
       .then((localStream) => {
         const call = peerJS.call(idToConnect, localStream);
         call.on('stream', (_stream) => {
           const stream = _stream as MediaStream;
-          const isDuplicateStream = remoteStreams.some((_stream) => stream.id === _stream.id);
+          const isDuplicateStream = _remoteStreams.some((_stream) => stream.id === _stream.id);
           if (isDuplicateStream) {
             return;
           }
           dispatch(addRemoteStream(stream));
-          remoteStreams.push(stream);
+          _remoteStreams.push(stream);
         });
       });
   }, [ idToConnect, peerJS ]);
-
-  // TODO: add response to connect handler
 
   return (
     <Chat peerId={ peerId } />

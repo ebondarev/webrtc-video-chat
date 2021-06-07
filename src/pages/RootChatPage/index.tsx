@@ -35,30 +35,37 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
   }, []);
 
   React.useEffect(function handleClientsConnection() {
+    const _connectedClientsIds: IPeerId[] = [];
     peerJS.on('connection', (connect: PeerDataConnection) => {
       const peerId = connect.peer;
-      if (connectedClientsIds.includes(peerId)) {
+      if (_connectedClientsIds.includes(peerId)) {
         return;
       }
       dispatch(addConnectedClientsIds(peerId));
+      _connectedClientsIds.push(peerId);
     });
 
-    const remoteStreams: MediaStream[] = []; // dispatch срабатывает с задержкой поэтому создана эта переменная
+    const _remoteStreams: MediaStream[] = []; // dispatch срабатывает с задержкой поэтому создана эта переменная
     peerJS.on('call', (call) => {
-      console.log('%c localStreamRef.current ', 'background: #222; color: #bada55', localStreamRef.current);
       if (localStreamRef.current) {
         call.answer(localStreamRef.current);
       }
       call.on('stream', (stream: MediaStream) => {
-        const isDuplicateStream = remoteStreams.some((_stream) => stream.id === _stream.id);
+        const isDuplicateStream = _remoteStreams.some((_stream) => stream.id === _stream.id);
         if (isDuplicateStream) {
           return;
         }
         dispatch(addRemoteStream(stream));
-        remoteStreams.push(stream);
+        _remoteStreams.push(stream);
       });
     });
   }, [ peerJS ]);
+
+  React.useEffect(function sendToClientsConnectedIds() {
+    connectedClientsIds.forEach((id) => {
+      peerJS.connect(id).send(connectedClientsIds);
+    });
+  }, [ connectedClientsIds, peerJS ]);
 
   return (
     <>
