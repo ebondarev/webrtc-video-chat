@@ -27,6 +27,13 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
 
   const localStreamRef = React.useRef<MediaStream>();
 
+  React.useEffect(function getLocalStream() {
+    navigator.mediaDevices.getUserMedia(constraints)
+      .then((stream) => {
+        localStreamRef.current = stream;
+      });
+  }, []);
+
   React.useEffect(function handleClientsConnection() {
     peerJS.on('connection', (connect: PeerDataConnection) => {
       const peerId = connect.peer;
@@ -38,6 +45,7 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
 
     const remoteStreams: MediaStream[] = []; // dispatch срабатывает с задержкой поэтому создана эта переменная
     peerJS.on('call', (call) => {
+      console.log('%c localStreamRef.current ', 'background: #222; color: #bada55', localStreamRef.current);
       if (localStreamRef.current) {
         call.answer(localStreamRef.current);
       }
@@ -51,13 +59,6 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
       });
     });
   }, [ peerJS ]);
-
-  React.useEffect(function getLocalStream() {
-    navigator.mediaDevices.getUserMedia(constraints)
-      .then((stream) => {
-        localStreamRef.current = stream;
-      });
-  }, []);
 
   return (
     <>

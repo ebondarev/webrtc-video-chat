@@ -27,12 +27,18 @@ export const ClientChatPage: React.FC<IClientChatPageProps> = ({ peerId, idToCon
       return;
     }
 
+    const remoteStreams: MediaStream[] = []; // dispatch срабатывает с задержкой поэтому создана эта переменная
     navigator.mediaDevices.getUserMedia(constraints)
       .then((localStream) => {
         const call = peerJS.call(idToConnect, localStream);
-        call.on('stream', (data) => {
-          const remoteStream = data as MediaStream;
-          dispatch(addRemoteStream(remoteStream));
+        call.on('stream', (_stream) => {
+          const stream = _stream as MediaStream;
+          const isDuplicateStream = remoteStreams.some((_stream) => stream.id === _stream.id);
+          if (isDuplicateStream) {
+            return;
+          }
+          dispatch(addRemoteStream(stream));
+          remoteStreams.push(stream);
         });
       });
   }, [ idToConnect, peerJS ]);
