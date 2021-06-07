@@ -2,7 +2,8 @@ import React from "react";
 import { IPeerId } from "../../App";
 import { Chat } from "../../components/Chat";
 import { Typography } from 'antd';
-import { PeerDataConnection, PeerJS } from "../../AppSlice";
+import { addConnectedClientsIds, addRemoteStream, PeerDataConnection, PeerJS } from "../../AppSlice";
+import { useAppDispatch, useAppSelector } from "../../hooks";
 
 export interface IRootChatPage {
   peerId: IPeerId;
@@ -10,7 +11,9 @@ export interface IRootChatPage {
 }
 
 export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
-  const [ connectedClientsIds, setConnectedClientsIds ] = React.useState< IPeerId[] >([]);
+  const dispatch = useAppDispatch();
+
+  const connectedClientsIds = useAppSelector((state) => state.app.rtc.connectedClientsIds);
 
   React.useEffect(function handleClientsConnection() {
     peerJS.on('connection', (connect: PeerDataConnection) => {
@@ -18,38 +21,14 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
       if (connectedClientsIds.includes(peerId)) {
         return;
       }
-      setConnectedClientsIds((ids) => [...ids, peerId]);
+      dispatch(addConnectedClientsIds(peerId));
     });
 
     peerJS.on('call', (call) => {
-      (window as any).my_call = call;
-      console.log('%c call ', 'background: #222; color: #bada55', call);
       call.answer();
-      setTimeout(function () {
-        console.log('%c timeout ', 'background: #222; color: #bada55');
-        var video = document.createElement('video');
-        video.srcObject = call.remoteStream;
-        video.onloadedmetadata = function (e) {
-            video.play();
-        };
-        document.body.appendChild(video);
-      }, 1500);
-      // var video = document.createElement('video') as HTMLVideoElement;
-      // video.srcObject = call.remoteStream;
-      // document.body.appendChild(video);
-      // call.on('stream', (stream: MediaStream) => {
-      //   console.log('%c stream ', 'background: #222; color: #bada55', stream);
-      //   const video = document.createElement('video') as HTMLVideoElement;
-      //   document.body.appendChild(video);
-      //   video.srcObject = stream;
-      //   video.style.border = '2px solid red';
-      // });
+      dispatch(addRemoteStream(call.remoteStream));
     });
   }, [ peerJS ]);
-
-  React.useEffect(function handleChangeConnectedClients() {
-    console.log('%c connectedClientsIds ', 'background: black; color: white;', connectedClientsIds);
-  }, [ connectedClientsIds ]);
 
   return (
     <>

@@ -109,6 +109,10 @@ export interface SetPeerIdAction extends Action {
   payload: IPeerId;
 }
 
+export interface AddConnectedClientsIds extends Action {
+  payload: IPeerId;
+}
+
 export interface SetUserNameAction extends Action {
   payload: string;
 }
@@ -132,6 +136,7 @@ export const appSlice = createSlice({
     rtc: {
       peerId: '' as IPeerId,
       idToConnect: '' as IPeerId,
+      connectedClientsIds: [] as IPeerId[],
       peerToPeerNodeType: null as IPeerToPeerNodeType,
       peerJS: new (window as any).Peer({ config: peerConfig }) as PeerJS,
       remoteStreams: [] as IParticipantsVideo[],
@@ -140,6 +145,12 @@ export const appSlice = createSlice({
   reducers: {
     setPeerId: (state, action: SetPeerIdAction) => {
       state.rtc.peerId = action.payload;
+    },
+    addConnectedClientsIds: (state, action: AddConnectedClientsIds) => {
+      state.rtc.connectedClientsIds = [
+        ...state.rtc.connectedClientsIds,
+        action.payload
+      ];
     },
     setUserName: (state, action: SetUserNameAction) => {
       state.user.name = action.payload;
@@ -151,14 +162,13 @@ export const appSlice = createSlice({
       state.rtc.peerToPeerNodeType = action.payload;
     },
     addRemoteStream: (state, action: AddRemoteStreamAction) => {
-      const nextRemoteStreams = [
+      state.rtc.remoteStreams = [
         ...state.rtc.remoteStreams,
         {
           id: uuidv4(),
           srcObject: action.payload,
         }
-      ];
-      state.rtc.remoteStreams = nextRemoteStreams as any;
+      ] as any;
     },
   },
 });
@@ -168,7 +178,8 @@ export const {
   setUserName,
   setIdToConnect,
   setPeerToPeerNodeType,
-  addRemoteStream
+  addRemoteStream,
+  addConnectedClientsIds
 } = appSlice.actions;
 
 export const appReducer = appSlice.reducer;
