@@ -10,39 +10,39 @@ import s from './index.module.css';
 import { useAppSelector } from "../../hooks";
 
 
-const videoPlayerOptions: IVideoPlayerProps = {
-  autoplay: true,
-  controls: true,
-  sources: [{
-    src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-    type: 'video/mp4'
-  }],
-  fluid: true,
-};
+// const videoPlayerOptions: IVideoPlayerProps = {
+//   autoplay: true,
+//   controls: true,
+//   sources: [{
+//     src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+//     type: 'video/mp4'
+//   }],
+//   fluid: true,
+// };
 
-const participantsVideos: IParticipantsProps['videos'] = [
-  {
-    id: '0',
-    autoplay: true,
-    width: 300,
-    height: 150,
-    sources: [{
-      src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-      type: 'video/mp4',
-    }],
-    fluid: true,
-  }, {
-    id: '1',
-    autoplay: true,
-    width: 300,
-    height: 150,
-    sources: [{
-      src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-      type: 'video/mp4',
-    }],
-    fluid: true,
-  },
-];
+// const participantsVideos: IParticipantsProps['videos'] = [
+//   {
+//     id: '0',
+//     autoplay: true,
+//     width: 300,
+//     height: 150,
+//     sources: [{
+//       src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+//       type: 'video/mp4',
+//     }],
+//     fluid: true,
+//   }, {
+//     id: '1',
+//     autoplay: true,
+//     width: 300,
+//     height: 150,
+//     sources: [{
+//       src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+//       type: 'video/mp4',
+//     }],
+//     fluid: true,
+//   },
+// ];
 
 export interface IChatProps {
   peerId: IPeerId;
@@ -64,7 +64,7 @@ export const Chat: React.FC<IChatProps> = ({ peerId }) => {
       <section className={ s['content'] }>
         <main>
           <Participants videos={ participantsVideos } />
-          <VideoPlayer { ...videoPlayerOptions } />
+          {/* <VideoPlayer { ...videoPlayerOptions } /> */}
         </main>
         <aside className={ s['aside'] }>
           <Messanger />

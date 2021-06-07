@@ -2,7 +2,7 @@ import React from "react";
 import { IVideoPlayerProps, VideoPlayer } from "../VideoPlayer"
 import s from './index.module.css';
 
-export type IParticipantsVideo = IVideoPlayerProps & {
+export interface IParticipantsVideo extends IVideoPlayerProps {
   id: string;
 };
 
