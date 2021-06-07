@@ -42,6 +42,7 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
           return;
         }
         dispatch(addRemoteStream(stream));
+        remoteStreams.push(stream);
       });
     });
   }, [ peerJS ]);
