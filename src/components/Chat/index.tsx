@@ -4,45 +4,10 @@ import { IPeerId } from "../../App";
 import { Button } from 'antd';
 import { Messanger } from "../Messanger";
 import { TvIcon, DisplayIcon, VideoCameraIcon, MicrophoneIcon, PhoneHangUpIcon } from "../Icons";
-import { IParticipantsProps, Participants } from "../Participants";
-import { IVideoPlayerProps, VideoPlayer } from "../VideoPlayer";
+import { Participants } from "../Participants";
 import s from './index.module.css';
 import { useAppSelector } from "../../hooks";
 
-
-// const videoPlayerOptions: IVideoPlayerProps = {
-//   autoplay: true,
-//   controls: true,
-//   sources: [{
-//     src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-//     type: 'video/mp4'
-//   }],
-//   fluid: true,
-// };
-
-// const participantsVideos: IParticipantsProps['videos'] = [
-//   {
-//     id: '0',
-//     autoplay: true,
-//     width: 300,
-//     height: 150,
-//     sources: [{
-//       src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-//       type: 'video/mp4',
-//     }],
-//     fluid: true,
-//   }, {
-//     id: '1',
-//     autoplay: true,
-//     width: 300,
-//     height: 150,
-//     sources: [{
-//       src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-//       type: 'video/mp4',
-//     }],
-//     fluid: true,
-//   },
-// ];
 
 export interface IChatProps {
   peerId: IPeerId;

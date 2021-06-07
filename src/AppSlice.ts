@@ -94,7 +94,6 @@ export type PeerJS = {
   ) => void;
 };
 
-
 export type IPeerId = string;
 
 export interface State {
@@ -152,17 +151,14 @@ export const appSlice = createSlice({
       state.rtc.peerToPeerNodeType = action.payload;
     },
     addRemoteStream: (state, action: AddRemoteStreamAction) => {
-      state.rtc.remoteStreams = [
+      const nextRemoteStreams = [
         ...state.rtc.remoteStreams,
         {
           id: uuidv4(),
-          autoplay: true,
-          width: 300,
-          height: 150,
           srcObject: action.payload,
-          fluid: true,
         }
-      ]
+      ];
+      state.rtc.remoteStreams = nextRemoteStreams as any;
     },
   },
 });
