@@ -12,6 +12,14 @@ import { useAppDispatch, useAppSelector } from './hooks';
 import { addRemoteStream, setIdToConnect, setPeerId, setPeerToPeerNodeType, setUserName as setUserNameAction } from './AppSlice';
 
 
+const constraints: MediaStreamConstraints = {
+  audio: true,
+  video: {
+    width: 320,
+    height: 240,
+    facingMode: 'user',
+  },
+};
 
 export type IPeerId = string;
 
@@ -46,15 +54,6 @@ function App() {
     if (idToConnect === '') {
       return;
     }
-
-    const constraints: MediaStreamConstraints = {
-      audio: true,
-      video: {
-        width: 320,
-        height: 240,
-        facingMode: 'user',
-      },
-    };
 
     navigator.mediaDevices.getUserMedia(constraints)
       .then((localStream) => {

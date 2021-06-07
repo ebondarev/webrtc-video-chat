@@ -20,6 +20,10 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
       }
       setConnectedClientsIds((ids) => [...ids, peerId]);
     });
+
+    peerJS.on('call', (call) => {
+      console.log('%c oncall ', 'background: #222; color: #bada55', call);
+    });
   }, [ peerJS ]);
 
   React.useEffect(function handleChangeConnectedClients() {
