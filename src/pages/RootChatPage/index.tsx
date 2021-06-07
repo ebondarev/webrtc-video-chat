@@ -30,7 +30,11 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
       call.answer();
       call.on('stream', (stream: MediaStream) => {
         console.log('%c stream ', 'background: #222; color: #bada55');
-        const isDublicateStream = remoteStreams.some((_stream) => stream.id === _stream.id);
+        const isDublicateStream = remoteStreams.some((_stream) => {
+          console.log('%c condition ', 'background: #222; color: #bada55', stream.id, _stream.id);
+          return stream.id === _stream.id;
+        });
+        console.log('%c isDublicateStream ', 'background: #222; color: #bada55', isDublicateStream);
         if (isDublicateStream) {
           return;
         }
