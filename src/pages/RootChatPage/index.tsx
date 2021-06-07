@@ -4,6 +4,7 @@ import { Chat } from "../../components/Chat";
 import { Typography } from 'antd';
 import { addConnectedClientsIds, addRemoteStream, PeerDataConnection, PeerJS } from "../../AppSlice";
 import { useAppDispatch, useAppSelector } from "../../hooks";
+import { IParticipantsVideo } from "../../components/Participants";
 
 export interface IRootChatPage {
   peerId: IPeerId;
@@ -26,6 +27,7 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
       dispatch(addConnectedClientsIds(peerId));
     });
 
+    const remoteStreams: MediaStream[] = [];
     peerJS.on('call', (call) => {
       call.answer();
       call.on('stream', (stream: MediaStream) => {
