@@ -22,14 +22,22 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
     });
 
     peerJS.on('call', (call) => {
-      console.log('%c oncall ', 'background: #222; color: #bada55', call);
-      call.on('stream', (stream: MediaStream) => {
-        console.log('%c stream ', 'background: #222; color: #bada55', stream);
-        const video = document.createElement('video') as HTMLVideoElement;
+      call.answer();
+      setTimeout(function () {
+        var video = document.getElementById('video') as HTMLVideoElement;
+        video.srcObject = call.remoteStream;
+        video.onloadedmetadata = function (e) {
+            video.play();
+        };
         document.body.appendChild(video);
-        video.srcObject = stream;
-        video.style.border = '2px solid red';
-      });
+    }, 1500);
+      // call.on('stream', (stream: MediaStream) => {
+      //   console.log('%c stream ', 'background: #222; color: #bada55', stream);
+      //   const video = document.createElement('video') as HTMLVideoElement;
+      //   document.body.appendChild(video);
+      //   video.srcObject = stream;
+      //   video.style.border = '2px solid red';
+      // });
     });
   }, [ peerJS ]);
 
