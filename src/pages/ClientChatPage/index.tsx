@@ -33,10 +33,12 @@ export const ClientChatPage: React.FC<IClientChatPageProps> = ({ peerId, idToCon
 
   React.useEffect(function handleRemoteData() {
     peerJS.on('connection', (connection: any) => {
-      connection.on('data', (data: any) => {
-        if (data?.type === 'clients ids') {
-          console.log('%c data ', 'background: #222; color: #bada55', data);
-        }
+      connection.on('open', () => {
+        connection.on('data', (data: any) => {
+          if (data?.type === 'clients ids') {
+            console.log('%c data ', 'background: #222; color: #bada55', data);
+          }
+        });
       });
     });
   }, [ peerJS ]);
