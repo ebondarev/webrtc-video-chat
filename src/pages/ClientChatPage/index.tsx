@@ -24,6 +24,7 @@ export const ClientChatPage: React.FC<IClientChatPageProps> = ({ peerId, idToCon
 
   React.useEffect(function listenRemoteData() {
     peerJS.on('connection', (connection: any) => {
+      console.log('%c client connection ', 'background: #222; color: #bada55');
       connection.on('data', (data: any) => {
         console.log('%c client. data ', 'background: #222; color: #bada55', data);
       });
