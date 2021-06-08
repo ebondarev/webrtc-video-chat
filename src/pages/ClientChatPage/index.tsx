@@ -22,12 +22,15 @@ const constraints: MediaStreamConstraints = {
 export const ClientChatPage: React.FC<IClientChatPageProps> = ({ peerId, idToConnect, peerJS }) => {
   const dispatch = useAppDispatch();
 
-  const localStreamRef = React.useRef<MediaStream>();
+  const [ localStream, setLocalStream ] = React.useState<MediaStream>();
+
+  // const localStreamRef = React.useRef<MediaStream>();
 
   React.useEffect(function getLocalMediaStream() {
     navigator.mediaDevices.getUserMedia(constraints)
       .then((localStream) => {
-        localStreamRef.current = localStream;
+        // localStreamRef.current = localStream;
+        setLocalStream(localStream);
       });
   }, []);
 
@@ -46,12 +49,12 @@ export const ClientChatPage: React.FC<IClientChatPageProps> = ({ peerId, idToCon
   }, [ peerJS ]);
 
   React.useEffect(function handleExchangeStreams() {
-    console.log('[LOG/client/condition]', (idToConnect === ''), (localStreamRef.current === undefined));
-    if ((idToConnect === '') || (localStreamRef.current === undefined)) {
+    console.log('[LOG/client/condition]', (idToConnect === ''), (localStream === undefined));
+    if ((idToConnect === '') || (localStream === undefined)) {
       return;
     }
     // отправляет локальный стрим
-    const call = peerJS.call(idToConnect, localStreamRef.current);
+    const call = peerJS.call(idToConnect, localStream);
     const _remoteStreams: MediaStream[] = []; // dispatch срабатывает с задержкой поэтому создана эта переменная
     // ожидает удалённый стрим
     call.on('stream', (_stream: any) => {
@@ -63,7 +66,7 @@ export const ClientChatPage: React.FC<IClientChatPageProps> = ({ peerId, idToCon
       dispatch(addRemoteStream(stream));
       _remoteStreams.push(stream);
     });
-  }, [ idToConnect, peerJS, localStreamRef.current ]);
+  }, [ idToConnect, peerJS, localStream ]);
 
   return (
     <Chat peerId={ peerId } />
