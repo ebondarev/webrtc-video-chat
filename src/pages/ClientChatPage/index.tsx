@@ -63,7 +63,7 @@ export const ClientChatPage: React.FC<IClientChatPageProps> = ({ peerId, idToCon
       dispatch(addRemoteStream(stream));
       _remoteStreams.push(stream);
     });
-  }, [ idToConnect, peerJS ]);
+  }, [ idToConnect, peerJS, localStreamRef.current ]);
 
   return (
     <Chat peerId={ peerId } />
