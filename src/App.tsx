@@ -9,7 +9,7 @@ import { RootChatPage } from './pages/RootChatPage';
 import { ClientChatPage } from './pages/ClientChatPage';
 import { Content } from './containers/Content';
 import { useAppDispatch, useAppSelector } from './hooks';
-import { addRemoteStream, setIdToConnect, setPeerId, setPeerToPeerNodeType, setUserName as setUserNameAction } from './AppSlice';
+import { addRemoteStream, setRootPeerId, setPeerId, setPeerToPeerNodeType, setUserName as setUserNameAction } from './AppSlice';
 
 const peerConfig = {
   'iceServers': [
@@ -79,7 +79,7 @@ export interface PeerDataConnection {
   send: (data: any) => void;
   close: () => void;
   on: (
-    event: PeerEvent,
+    event: 'data' | 'open' | 'close' | 'error',
     callback: (data: any) => void
   ) => void;
   dataChannel: RTCDataChannel;
@@ -110,7 +110,7 @@ function App() {
   const history = useHistory();
 
   const peerId = useAppSelector((state) => state.app.rtc.peerId);
-  const idToConnect = useAppSelector((state) => state.app.rtc.idToConnect);
+  const rootPeerId = useAppSelector((state) => state.app.rtc.rootPeerId);
   const peerToPeerNodeType = useAppSelector((state) => state.app.rtc.peerToPeerNodeType);
 
   const peerJSRef = React.useRef<PeerJS>(new (window as any).Peer({ config: peerConfig }));
@@ -144,7 +144,7 @@ function App() {
 
   function connectToChat(idToConnect: IPeerId) {
     dispatch(setPeerToPeerNodeType('client'));
-    dispatch(setIdToConnect(idToConnect));
+    dispatch(setRootPeerId(idToConnect));
   }
 
   function setUserName(name: string) {
@@ -166,7 +166,7 @@ function App() {
       <Route path="/client-chat">
         <ClientChatPage
           peerId={ peerId }
-          idToConnect= { idToConnect }
+          rootPeerId= { rootPeerId }
           peerJS={ peerJS }
         />
       </Route>

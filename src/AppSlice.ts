@@ -44,7 +44,7 @@ export const appSlice = createSlice({
     },
     rtc: {
       peerId: '' as IPeerId,
-      idToConnect: '' as IPeerId,
+      rootPeerId: '' as IPeerId,
       connectedClientsIds: [] as IPeerId[],
       peerToPeerNodeType: null as IPeerToPeerNodeType,
       remoteStreams: [] as IParticipantsVideo[],
@@ -63,8 +63,8 @@ export const appSlice = createSlice({
     setUserName: (state, action: SetUserNameAction) => {
       state.user.name = action.payload;
     },
-    setIdToConnect: (state, action: SetPeerIdAction) => {
-      state.rtc.idToConnect = action.payload;
+    setRootPeerId: (state, action: SetPeerIdAction) => {
+      state.rtc.rootPeerId = action.payload;
     },
     setPeerToPeerNodeType: (state, action: SetPeerToPeerNodeTypeAction) => {
       state.rtc.peerToPeerNodeType = action.payload;
@@ -84,7 +84,7 @@ export const appSlice = createSlice({
 export const {
   setPeerId,
   setUserName,
-  setIdToConnect,
+  setRootPeerId,
   setPeerToPeerNodeType,
   addRemoteStream,
   addConnectedClientsIds

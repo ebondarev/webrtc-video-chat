@@ -1,6 +1,7 @@
 import React from 'react';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
-import { PeerJS } from '../App';
+import { PeerDataConnection as PeerDataConnect, PeerJS } from '../App';
+import { IPeerId } from '../AppSlice';
 import { RemoteData } from '../models';
 import { AppDispatch, RootState } from "../store";
 
@@ -31,20 +32,50 @@ export function useMediaStream() {
   return stream;
 }
 
-export function useRemoteRootData(peerJS: PeerJS) {
+export function useRemoteDataOf(connection: PeerDataConnect | undefined) {
   const [ data, setData ] = React.useState<RemoteData>();
   
   React.useEffect(function listenRemotePeerData() {
-    peerJS.on('connection', (connection: any) => {
-      connection.on('open', () => {
-        connection.on('data', (data: RemoteData | any) => {
-          if (data?.type === 'peers_ids') {
-            setData(data);
-          }
+    if (connection === undefined) {
+      return;
+    }
+
+    connection.on('open', () => {
+      connection.on('data', (data: unknown) => {
+        // Add narrow from https://mariusschulz.com/blog/the-unknown-type-in-typescript
+        if (data)
+        setData(data);
+      });
+    });
+  }, [ connection ]);
+
+  return data;
+}
+
+// ?
+export function useRemoteData(peerJS: PeerJS) {
+  const [ data, setData ] = React.useState<unknown>();
+
+  React.useEffect(function handleRemoteData() {
+    peerJS.on('connection', (connect: PeerDataConnect) => {
+      connect.on('open', () => {
+        connect.on('data', (data: unknown) => {
+          setData(data);
         });
       });
     });
   }, [ peerJS ]);
 
   return data;
+}
+
+export function useConnectToPeer(peerJS: PeerJS, peerId: IPeerId) {
+  const [ connect, setConnect ] = React.useState< PeerDataConnect >();
+
+  React.useEffect(function connectToPeer() {
+    const connection = peerJS.connect(peerId);
+    setConnect(connection);
+  }, [ peerJS, peerId ]);
+
+  return connect;
 }
