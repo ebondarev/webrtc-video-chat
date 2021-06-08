@@ -81,7 +81,7 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
      */
     console.log('%c sendToClientsConnectedIds ', 'background: #222; color: #bada55', connectedClientsIds);
     connectedClientsIds.forEach((id) => {
-      console.log('%c root connectedClientsIds ', 'background: #222; color: #bada55', id, connectedClientsIds);
+      console.log('%c root connectedClientsIds ', 'background: #222; color: #bada55', id, connectedClientsIds, new Date().toUTCString());
       peerJS.connect(id).send(connectedClientsIds);
     });
   }, [ connectedClientsIds, peerJS ]);
