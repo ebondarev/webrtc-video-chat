@@ -46,6 +46,7 @@ export const ClientChatPage: React.FC<IClientChatPageProps> = ({ peerId, idToCon
   }, [ peerJS ]);
 
   React.useEffect(function handleExchangeStreams() {
+    console.log('[LOG/client/condition]', (idToConnect === ''), (localStreamRef.current === undefined));
     if ((idToConnect === '') || (localStreamRef.current === undefined)) {
       return;
     }
