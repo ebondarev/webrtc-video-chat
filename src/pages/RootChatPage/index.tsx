@@ -69,16 +69,14 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
   }, [ peerJS ]);
 
   React.useEffect(function sendToClientsConnectedIds() {
-    /*
-     *
-     * connectedClientsIds is empty
-     * because did not call 'connection'
-     *
-     */
     connectedClientsIds.forEach((id) => {
       const connection = peerJS.connect(id);
       connection.on('open', () => {
-        connection.send(connectedClientsIds);
+        const data = {
+          type: 'clients ids',
+          payload: connectedClientsIds,
+        };
+        connection.send(data);
       });
     });
   }, [ connectedClientsIds, peerJS ]);

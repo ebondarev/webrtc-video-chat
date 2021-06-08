@@ -20,42 +20,44 @@ const constraints: MediaStreamConstraints = {
 };
 
 export const ClientChatPage: React.FC<IClientChatPageProps> = ({ peerId, idToConnect, peerJS }) => {
-  console.log('%c client/peerId ', 'background: #222; color: #bada55', peerId);
   const dispatch = useAppDispatch();
 
-  React.useEffect(function listenRemoteData() {
-    console.log('%c client/set connection ', 'background: #222; color: #bada55');
-    peerJS.on('connection', (connection: any) => {
-      connection.on('open', () => {
-        connection.on('data', (data: any) => {
-          console.log('%c client/received data ', 'background: #222; color: #bada55', data);
-        });
-      });
-      connection.on('data', (data: any) => {
-        console.log('%c client/received data 1 ', 'background: #222; color: #bada55', data);
-      });
-    })
-  }, [ peerJS ]);
+  const localStreamRef = React.useRef<MediaStream>();
 
-  React.useEffect(function setConnect() {
-    if (idToConnect === '') {
-      return;
-    }
-
-    const _remoteStreams: MediaStream[] = []; // dispatch срабатывает с задержкой поэтому создана эта переменная
+  React.useEffect(function getLocalMediaStream() {
     navigator.mediaDevices.getUserMedia(constraints)
       .then((localStream) => {
-        const call = peerJS.call(idToConnect, localStream);
-        call.on('stream', (_stream: any) => {
-          const stream = _stream as MediaStream;
-          const isDuplicateStream = _remoteStreams.some((_stream) => stream.id === _stream.id);
-          if (isDuplicateStream) {
-            return;
-          }
-          dispatch(addRemoteStream(stream));
-          _remoteStreams.push(stream);
-        });
+        localStreamRef.current = localStream;
       });
+  }, []);
+
+  React.useEffect(function handleRemoteData() {
+    peerJS.on('connection', (connection: any) => {
+      connection.on('data', (data: any) => {
+        if (data?.type === 'clients ids') {
+          console.log('%c data ', 'background: #222; color: #bada55', data);
+        }
+      });
+    });
+  }, [ peerJS ]);
+
+  React.useEffect(function handleExchangeStreams() {
+    if ((idToConnect === '') || (localStreamRef.current === undefined)) {
+      return;
+    }
+    // отправляет локальный стрим
+    const call = peerJS.call(idToConnect, localStreamRef.current);
+    const _remoteStreams: MediaStream[] = []; // dispatch срабатывает с задержкой поэтому создана эта переменная
+    // ожидает удалённый стрим
+    call.on('stream', (_stream: any) => {
+      const stream = _stream as MediaStream;
+      const isDuplicateStream = _remoteStreams.some((_stream) => stream.id === _stream.id);
+      if (isDuplicateStream) {
+        return;
+      }
+      dispatch(addRemoteStream(stream));
+      _remoteStreams.push(stream);
+    });
   }, [ idToConnect, peerJS ]);
 
   return (
