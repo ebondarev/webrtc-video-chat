@@ -1,6 +1,6 @@
 import React from "react";
-import { IPeerId } from "../../App"
-import { addRemoteStream, PeerJS } from "../../AppSlice";
+import { IPeerId, PeerJS } from "../../App"
+import { addRemoteStream } from "../../AppSlice";
 import { Chat } from "../../components/Chat";
 import { useAppDispatch } from "../../hooks";
 
@@ -23,7 +23,7 @@ export const ClientChatPage: React.FC<IClientChatPageProps> = ({ peerId, idToCon
   const dispatch = useAppDispatch();
 
   React.useEffect(function listenRemoteData() {
-    peerJS.on('connection', (connection) => {
+    peerJS.on('connection', (connection: any) => {
       connection.on('data', (data: any) => {
         console.log('%c client. data ', 'background: #222; color: #bada55', data);
       });
@@ -39,7 +39,7 @@ export const ClientChatPage: React.FC<IClientChatPageProps> = ({ peerId, idToCon
     navigator.mediaDevices.getUserMedia(constraints)
       .then((localStream) => {
         const call = peerJS.call(idToConnect, localStream);
-        call.on('stream', (_stream) => {
+        call.on('stream', (_stream: any) => {
           const stream = _stream as MediaStream;
           const isDuplicateStream = _remoteStreams.some((_stream) => stream.id === _stream.id);
           if (isDuplicateStream) {

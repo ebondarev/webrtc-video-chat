@@ -1,8 +1,8 @@
 import React from "react";
-import { IPeerId } from "../../App";
+import { IPeerId, PeerDataConnection, PeerJS } from "../../App";
 import { Chat } from "../../components/Chat";
 import { Typography } from 'antd';
-import { addConnectedClientsIds, addRemoteStream, PeerDataConnection, PeerJS } from "../../AppSlice";
+import { addConnectedClientsIds, addRemoteStream } from "../../AppSlice";
 import { useAppDispatch, useAppSelector } from "../../hooks";
 import { IParticipantsVideo } from "../../components/Participants";
 
@@ -47,7 +47,7 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
     });
 
     const _remoteStreams: MediaStream[] = []; // dispatch срабатывает с задержкой поэтому создана эта переменная
-    peerJS.on('call', (call) => {
+    peerJS.on('call', (call: any) => {
       if (localStreamRef.current) {
         call.answer(localStreamRef.current);
       }
