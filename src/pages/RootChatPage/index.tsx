@@ -57,6 +57,7 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
           return;
         }
         dispatch(addRemoteStream(stream));
+        console.log('%c remote stream ', 'background: black; color: white;', stream);
         _remoteStreams.push(stream);
       });
     });
@@ -66,6 +67,7 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
     /*
      *
      * connectedClientsIds is empty
+     * because did not call 'connection'
      *
      */
     console.log('%c sendToClientsConnectedIds ', 'background: #222; color: #bada55', connectedClientsIds);
