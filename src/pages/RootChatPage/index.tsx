@@ -51,6 +51,14 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
       if (localStreamRef.current) {
         call.answer(localStreamRef.current);
       }
+
+      const peerId = call.peer;
+      if (_connectedClientsIds.includes(peerId)) {
+        return;
+      }
+      dispatch(addConnectedClientsIds(peerId));
+      _connectedClientsIds.push(peerId);
+
       call.on('stream', (stream: MediaStream) => {
         const isDuplicateStream = _remoteStreams.some((_stream) => stream.id === _stream.id);
         if (isDuplicateStream) {
