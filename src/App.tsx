@@ -116,6 +116,10 @@ function App() {
   const peerJSRef = React.useRef<PeerJS>(new (window as any).Peer({ config: peerConfig }));
   const peerJS = peerJSRef.current;
 
+  React.useEffect(function __forDebug__() {
+    (window as any).peerJS = peerJS;
+  }, []);
+
   React.useEffect(function fetchPeerId() {
     peerJS.on('open', (peerId: IPeerId) => {
       dispatch(setPeerId(peerId));

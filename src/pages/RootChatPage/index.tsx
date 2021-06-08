@@ -4,7 +4,6 @@ import { Chat } from "../../components/Chat";
 import { Typography } from 'antd';
 import { addConnectedClientsIds, addRemoteStream } from "../../AppSlice";
 import { useAppDispatch, useAppSelector } from "../../hooks";
-import { IParticipantsVideo } from "../../components/Participants";
 
 export interface IRootChatPage {
   peerId: IPeerId;
@@ -37,7 +36,6 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
   React.useEffect(function handleClientsConnection() {
     const _connectedClientsIds: IPeerId[] = [];
     peerJS.on('connection', (connect: PeerDataConnection) => {
-      console.log('%c root. connection ', 'background: #222; color: #bada55');
       const peerId = connect.peer;
       if (_connectedClientsIds.includes(peerId)) {
         return;
@@ -65,8 +63,6 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
           return;
         }
         dispatch(addRemoteStream(stream));
-        console.log('%c remote stream ', 'background: black; color: white;', stream);
-        console.log('%c remote call ', 'background: black; color: white;', call);
         _remoteStreams.push(stream);
       });
     });
@@ -79,10 +75,11 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
      * because did not call 'connection'
      *
      */
-    console.log('%c sendToClientsConnectedIds ', 'background: #222; color: #bada55', connectedClientsIds);
     connectedClientsIds.forEach((id) => {
-      console.log('%c root connectedClientsIds ', 'background: #222; color: #bada55', id, connectedClientsIds, Date.now());
-      peerJS.connect(id).send(connectedClientsIds);
+      const connection = peerJS.connect(id);
+      connection.on('open', () => {
+        connection.send(connectedClientsIds);
+      });
     });
   }, [ connectedClientsIds, peerJS ]);
 

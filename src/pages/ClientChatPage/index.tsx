@@ -20,17 +20,20 @@ const constraints: MediaStreamConstraints = {
 };
 
 export const ClientChatPage: React.FC<IClientChatPageProps> = ({ peerId, idToConnect, peerJS }) => {
+  console.log('%c client/peerId ', 'background: #222; color: #bada55', peerId);
   const dispatch = useAppDispatch();
 
   React.useEffect(function listenRemoteData() {
+    console.log('%c client/set connection ', 'background: #222; color: #bada55');
     peerJS.on('connection', (connection: any) => {
-      console.log('%c client connection ', 'background: #222; color: #bada55', Date.now(), connection);
       connection.on('open', () => {
-        console.log('%c open ', 'background: #222; color: #bada55');
         connection.on('data', (data: any) => {
-          console.log('%c client. data ', 'background: #222; color: #bada55', data);
+          console.log('%c client/received data ', 'background: #222; color: #bada55', data);
         });
-      })
+      });
+      connection.on('data', (data: any) => {
+        console.log('%c client/received data 1 ', 'background: #222; color: #bada55', data);
+      });
     })
   }, [ peerJS ]);
 
