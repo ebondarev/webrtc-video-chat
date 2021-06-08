@@ -2,7 +2,7 @@ import React from "react";
 import { IPeerId, PeerJS } from "../../App"
 import { addRemoteStream } from "../../AppSlice";
 import { Chat } from "../../components/Chat";
-import { useAppDispatch } from "../../hooks";
+import { useAppDispatch, useMediaStream, useRemoteRootData } from "../../hooks";
 
 export interface IClientChatPageProps {
   peerId: IPeerId;
@@ -10,46 +10,17 @@ export interface IClientChatPageProps {
   peerJS: PeerJS;
 }
 
-const constraints: MediaStreamConstraints = {
-  audio: true,
-  video: {
-    width: 320,
-    height: 240,
-    facingMode: 'user',
-  },
-};
-
 export const ClientChatPage: React.FC<IClientChatPageProps> = ({ peerId, idToConnect, peerJS }) => {
   const dispatch = useAppDispatch();
 
-  const [ localStream, setLocalStream ] = React.useState<MediaStream>();
+  const localStream = useMediaStream();
 
-  // const localStreamRef = React.useRef<MediaStream>();
-
-  React.useEffect(function getLocalMediaStream() {
-    navigator.mediaDevices.getUserMedia(constraints)
-      .then((localStream) => {
-        // localStreamRef.current = localStream;
-        setLocalStream(localStream);
-      });
-  }, []);
-
-  React.useEffect(function handleRemoteData() {
-    peerJS.on('connection', (connection: any) => {
-      connection.on('open', () => {
-        console.log('%c client/open ', 'background: #222; color: #bada55');
-        connection.on('data', (data: any) => {
-          console.log('%c client/data top ', 'background: #222; color: #bada55');
-          if (data?.type === 'clients ids') {
-            console.log('%c client/data ', 'background: #222; color: #bada55', data);
-          }
-        });
-      });
-    });
-  }, [ peerJS ]);
+  const remoteRootData = useRemoteRootData(peerJS);
+  React.useEffect(() => {
+    console.log('%c remoteRootData ', 'background: #222; color: #bada55', remoteRootData);
+  }, [ remoteRootData ]);
 
   React.useEffect(function handleExchangeStreams() {
-    console.log('[LOG/client/condition]', (idToConnect === ''), (localStream === undefined));
     if ((idToConnect === '') || (localStream === undefined)) {
       return;
     }
