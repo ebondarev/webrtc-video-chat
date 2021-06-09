@@ -15,7 +15,7 @@ export interface PeerJSConstructorOptions {
       sdpSemantics: string;
     }[];
   }
-  debug: number;
+  debug: 0 | 1 | 2 | 3;
 }
 
 export type PeerJSOnEvent = 'open' | 'connection' | 'call' | 'close' | 'disconnected' | 'error';
@@ -80,9 +80,6 @@ export interface PeerJSDataConnect {
 export interface PeerJSMediaConnection {
   answer: (stream?: MediaStream, options?: { sdpTransform: () => void }) => void;
   close: () => void;
-  // on: ( (event: 'stream', callback: (stream: MediaStream) => void) => void )
-  //   | ( (event: 'close', callback: () => void) => void )
-  //   | ( (event: 'error', callback: (error: unknown) => void) => void );
   on: (
     event: 'stream' | 'close' | 'error',
     callback: ((stream: MediaStream) => void) | (() => void) | ((error: unknown) => void)

@@ -45,6 +45,9 @@ export function useRemoteMediaStreams(peerJS: PeerJS, stream: MediaStream | unde
         // TODO: check to duplicates
         setRemoteStreams([...remoteStreams, remoteStream]);
       });
+      call.on('error', (error: unknown) => {
+        console.log('%c root error ', 'background: #222; color: #bada55', error);
+      })
     });
   }, [ peerJS, stream ]);
 
@@ -121,6 +124,9 @@ export function useExchangeMediaStreams(peerJS: PeerJS, peerId: string, stream: 
       console.log('%c client got stream from root ', 'background: #222; color: #bada55');
       setRemoteStream(stream);
     });
+    mediaConnect.on('error', (error: unknown) => {
+      console.log('%c client error ', 'background: #222; color: #bada55', error);
+    })
   }, [ peerId, stream ]);
 
   return [ remoteStream, remoteStreamConnect ];
