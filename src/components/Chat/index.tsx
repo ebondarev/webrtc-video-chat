@@ -1,6 +1,5 @@
 import React from "react";
 import { useHistory } from "react-router";
-import { IPeerId } from "../../App";
 import { Button } from 'antd';
 import { Messanger } from "../Messanger";
 import { TvIcon, DisplayIcon, VideoCameraIcon, MicrophoneIcon, PhoneHangUpIcon } from "../Icons";
@@ -10,7 +9,7 @@ import { useAppSelector } from "../../hooks";
 
 
 export interface IChatProps {
-  peerId: IPeerId;
+  peerId: string;
 }
 
 export const Chat: React.FC<IChatProps> = ({ peerId }) => {

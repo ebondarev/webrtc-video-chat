@@ -1,12 +1,12 @@
 import React from "react";
-import { IPeerId, PeerDataConnection, PeerJS } from "../../App";
 import { Chat } from "../../components/Chat";
 import { Typography } from 'antd';
 import { addConnectedClientsIds, addRemoteStream } from "../../AppSlice";
-import { useAppDispatch, useAppSelector, useMediaStream } from "../../hooks";
+import { useAppDispatch, useAppSelector, useMediaStream, useRemotePeerData } from "../../hooks";
+import { PeerJS } from "../../models";
 
 export interface IRootChatPage {
-  peerId: IPeerId;
+  peerId: string;
   peerJS: PeerJS;
 }
 
@@ -14,57 +14,63 @@ export interface IRootChatPage {
 export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
   const dispatch = useAppDispatch();
 
-  const connectedClientsIds = useAppSelector((state) => state.app.rtc.connectedClientsIds);
+  // const connectedClientsIds = useAppSelector((state) => state.app.rtc.connectedClientsIds);
 
   const localStream = useMediaStream();
 
-  React.useEffect(function handleClientsConnection() {
-    const _connectedClientsIds: IPeerId[] = [];
-    peerJS.on('connection', (connect: PeerDataConnection) => {
-      const peerId = connect.peer;
-      if (_connectedClientsIds.includes(peerId)) {
-        return;
-      }
-      dispatch(addConnectedClientsIds(peerId));
-      _connectedClientsIds.push(peerId);
-    });
+  const remotePeerData = useRemotePeerData(peerJS);
+  React.useEffect(() => {
+    console.log('%c remotePeerData ', 'background: #222; color: #bada55', remotePeerData);
+  }, [ remotePeerData ]);
 
-    const _remoteStreams: MediaStream[] = []; // dispatch срабатывает с задержкой поэтому создана эта переменная
-    peerJS.on('call', (call: any) => {
-      if (localStream) {
-        call.answer(localStream);
-      }
 
-      const peerId = call.peer;
-      if (_connectedClientsIds.includes(peerId)) {
-        return;
-      }
-      dispatch(addConnectedClientsIds(peerId));
-      _connectedClientsIds.push(peerId);
+  // React.useEffect(function handleClientsConnection() {
+  //   const _connectedClientsIds: IPeerId[] = [];
+  //   peerJS.on('connection', (connect: PeerDataConnection) => {
+  //     const peerId = connect.peer;
+  //     if (_connectedClientsIds.includes(peerId)) {
+  //       return;
+  //     }
+  //     dispatch(addConnectedClientsIds(peerId));
+  //     _connectedClientsIds.push(peerId);
+  //   });
 
-      call.on('stream', (stream: MediaStream) => {
-        const isDuplicateStream = _remoteStreams.some((_stream) => stream.id === _stream.id);
-        if (isDuplicateStream) {
-          return;
-        }
-        dispatch(addRemoteStream(stream));
-        _remoteStreams.push(stream);
-      });
-    });
-  }, [ peerJS, localStream ]);
+  //   const _remoteStreams: MediaStream[] = []; // dispatch срабатывает с задержкой поэтому создана эта переменная
+  //   peerJS.on('call', (call: any) => {
+  //     if (localStream) {
+  //       call.answer(localStream);
+  //     }
 
-  React.useEffect(function sendToClientsConnectedIds() {
-    connectedClientsIds.forEach((id) => {
-      const connection = peerJS.connect(id);
-      connection.on('open', () => {
-        const data = {
-          type: 'peers_ids',
-          payload: [ ...connectedClientsIds, peerId ],
-        };
-        connection.send(data);
-      });
-    });
-  }, [ connectedClientsIds, peerJS ]);
+  //     const peerId = call.peer;
+  //     if (_connectedClientsIds.includes(peerId)) {
+  //       return;
+  //     }
+  //     dispatch(addConnectedClientsIds(peerId));
+  //     _connectedClientsIds.push(peerId);
+
+  //     call.on('stream', (stream: MediaStream) => {
+  //       const isDuplicateStream = _remoteStreams.some((_stream) => stream.id === _stream.id);
+  //       if (isDuplicateStream) {
+  //         return;
+  //       }
+  //       dispatch(addRemoteStream(stream));
+  //       _remoteStreams.push(stream);
+  //     });
+  //   });
+  // }, [ peerJS, localStream ]);
+
+  // React.useEffect(function sendToClientsConnectedIds() {
+  //   connectedClientsIds.forEach((id) => {
+  //     const connection = peerJS.connect(id);
+  //     connection.on('open', () => {
+  //       const data = {
+  //         type: 'peers_ids',
+  //         payload: [ ...connectedClientsIds, peerId ],
+  //       };
+  //       connection.send(data);
+  //     });
+  //   });
+  // }, [ connectedClientsIds, peerJS ]);
 
   return (
     <>

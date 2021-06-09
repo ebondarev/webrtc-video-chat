@@ -9,7 +9,8 @@ import { RootChatPage } from './pages/RootChatPage';
 import { ClientChatPage } from './pages/ClientChatPage';
 import { Content } from './containers/Content';
 import { useAppDispatch, useAppSelector } from './hooks';
-import { addRemoteStream, setRootPeerId, setPeerId, setPeerToPeerNodeType, setUserName as setUserNameAction } from './AppSlice';
+import { setRootPeerId, setPeerId, setPeerToPeerNodeType, setUserName as setUserNameAction } from './AppSlice';
+import { PeerJS } from './models';
 
 const peerConfig = {
   'iceServers': [
@@ -50,61 +51,6 @@ const peerConfig = {
   ]
 };
 
-export interface SdpTransformMethod {
-  (data: any): any;
-}
-
-export interface MediaConnectionAnswerOptions {
-  sdpTransform: SdpTransformMethod;
-}
-
-export type PeerEvent = 'open' | 'connection' | 'call' | 'close' | 'disconnected' | 'error';
-
-export interface MediaConnection {
-  answer: (stream: MediaStream, options: MediaConnectionAnswerOptions) => void;
-  on: (event: 'stream' | 'close' | 'error', callback: (data?: MediaStream | { error: string }) => void) => void;
-  close: () => void;
-  open: boolean;
-  metadata: any;
-  peer: IPeerId;
-  type: string;
-}
-
-export interface PeerCallOptions {
-  metadata: any;
-  sdpTransform: SdpTransformMethod;
-}
-
-export interface PeerDataConnection {
-  send: (data: any) => void;
-  close: () => void;
-  on: (
-    event: 'data' | 'open' | 'close' | 'error',
-    callback: (data: any) => void
-  ) => void;
-  dataChannel: RTCDataChannel;
-  label: string;
-  metadata: any;
-  open: boolean;
-  peerConnection: RTCPeerConnection;
-  peer: IPeerId;
-  reliable: boolean;
-  serialization: 'binary' | 'binary-utf8' | 'json' | 'none';
-  type: string;
-  bufferSize: number;
-}
-
-export type PeerJS = {
-  connect: (id: IPeerId) => PeerDataConnection;
-  call: (id: IPeerId, stream: MediaStream, options?: PeerCallOptions) => MediaConnection;
-  on: (
-    event: PeerEvent,
-    fn: (data: any) => void
-  ) => void;
-};
-
-export type IPeerId = string;
-
 function App() {
   const dispatch = useAppDispatch();
   const history = useHistory();
@@ -121,7 +67,7 @@ function App() {
   }, []);
 
   React.useEffect(function fetchPeerId() {
-    peerJS.on('open', (peerId: IPeerId) => {
+    peerJS.on('open', (peerId: string) => {
       dispatch(setPeerId(peerId));
     });
   }, []);
@@ -142,7 +88,7 @@ function App() {
     dispatch(setPeerToPeerNodeType('root'));
   }
 
-  function connectToChat(idToConnect: IPeerId) {
+  function connectToChat(idToConnect: string) {
     dispatch(setPeerToPeerNodeType('client'));
     dispatch(setRootPeerId(idToConnect));
   }

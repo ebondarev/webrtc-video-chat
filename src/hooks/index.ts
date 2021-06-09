@@ -1,8 +1,7 @@
 import React from 'react';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
-import { PeerDataConnection as PeerDataConnect, PeerJS } from '../App';
 import { IPeerId } from '../AppSlice';
-import { RemoteData } from '../models';
+import { isRemoteData, PeerJS, PeerJSDataConnect, RemoteDataPeersIds } from '../models';
 import { AppDispatch, RootState } from "../store";
 
 
@@ -32,35 +31,36 @@ export function useMediaStream() {
   return stream;
 }
 
-export function useRemoteDataOf(connection: PeerDataConnect | undefined) {
-  const [ data, setData ] = React.useState<RemoteData>();
+export function useRemotePeerDataOf(connect: PeerJSDataConnect | undefined) {
+  const [ data, setData ] = React.useState<RemoteDataPeersIds>();
   
   React.useEffect(function listenRemotePeerData() {
-    if (connection === undefined) {
+    if (connect === undefined) {
       return;
     }
 
-    connection.on('open', () => {
-      connection.on('data', (data: unknown) => {
-        // Add narrow from https://mariusschulz.com/blog/the-unknown-type-in-typescript
-        if (data)
-        setData(data);
+    connect.on('open', () => {
+      connect.on('data', (data: unknown) => {
+        if (isRemoteData(data)) {
+          setData(data);
+        }
       });
     });
-  }, [ connection ]);
+  }, [ connect ]);
 
   return data;
 }
 
-// ?
-export function useRemoteData(peerJS: PeerJS) {
-  const [ data, setData ] = React.useState<unknown>();
+export function useRemotePeerData(peerJS: PeerJS) {
+  const [ data, setData ] = React.useState<RemoteDataPeersIds>();
 
   React.useEffect(function handleRemoteData() {
-    peerJS.on('connection', (connect: PeerDataConnect) => {
+    peerJS.on('connection', (connect: PeerJSDataConnect) => {
       connect.on('open', () => {
         connect.on('data', (data: unknown) => {
-          setData(data);
+          if (isRemoteData(data)) {
+            setData(data);
+          }
         });
       });
     });
@@ -70,7 +70,7 @@ export function useRemoteData(peerJS: PeerJS) {
 }
 
 export function useConnectToPeer(peerJS: PeerJS, peerId: IPeerId) {
-  const [ connect, setConnect ] = React.useState< PeerDataConnect >();
+  const [ connect, setConnect ] = React.useState< PeerJSDataConnect >();
 
   React.useEffect(function connectToPeer() {
     const connection = peerJS.connect(peerId);
@@ -78,4 +78,12 @@ export function useConnectToPeer(peerJS: PeerJS, peerId: IPeerId) {
   }, [ peerJS, peerId ]);
 
   return connect;
+}
+
+export function useReceiveConnection(peerJS: PeerJS) {
+  React.useEffect(function handleRemoteConnection() {
+    peerJS.on('connection', (connection: PeerJSDataConnect) => {
+      console.log('%c  ', 'background: black; color: white;', connection);
+    })
+  })
 }

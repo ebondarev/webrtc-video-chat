@@ -1,21 +1,20 @@
 import React from "react";
 import { Button, Input } from 'antd';
 import s from './index.module.css';
-import { IPeerId } from "../../App";
 import Modal from "antd/lib/modal/Modal";
 
 const { Search } = Input;
 
 export interface IHomePageProps {
   createChat: () => void;
-  connectToChat: (idToConnect: IPeerId) => void;
+  connectToChat: (idToConnect: string) => void;
   setUserName: (name: string) => void;
 }
 
 export const HomePage: React.FC<IHomePageProps> = ({ createChat, connectToChat, setUserName }) => {
   const [ isModalVisible, setIsModalVisible ] = React.useState< boolean >(true);
 
-  function handleSearch(idToConnect: IPeerId) {
+  function handleSearch(idToConnect: string) {
     if (idToConnect === '') {
       return;
     }

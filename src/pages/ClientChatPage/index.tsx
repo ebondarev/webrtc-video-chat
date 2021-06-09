@@ -1,12 +1,12 @@
 import React from "react";
-import { IPeerId, PeerJS } from "../../App"
 import { addRemoteStream } from "../../AppSlice";
 import { Chat } from "../../components/Chat";
-import { useAppDispatch, useConnectToPeer, useMediaStream, useRemoteDataOf } from "../../hooks";
+import { useAppDispatch, useConnectToPeer, useMediaStream, useRemotePeerDataOf } from "../../hooks";
+import { PeerJS } from "../../models";
 
 export interface IClientChatPageProps {
-  peerId: IPeerId;
-  rootPeerId: IPeerId;
+  peerId: string;
+  rootPeerId: string;
   peerJS: PeerJS;
 }
 
@@ -17,7 +17,7 @@ export const ClientChatPage: React.FC<IClientChatPageProps> = ({ peerId, rootPee
 
   const connectionToRootPeer = useConnectToPeer(peerJS, rootPeerId);
 
-  const remoteRootData = useRemoteDataOf(connectionToRootPeer);
+  const remoteRootData = useRemotePeerDataOf(connectionToRootPeer);
   React.useEffect(() => {
     console.log('%c remoteRootData ', 'background: #222; color: #bada55', remoteRootData);
   }, [ remoteRootData ]);
