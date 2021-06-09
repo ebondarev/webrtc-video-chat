@@ -35,15 +35,17 @@ export function useRemoteMediaStreams(peerJS: PeerJS, stream: MediaStream | unde
   const [ remoteStreams, setRemoteStreams ] = React.useState<MediaStream[]>([]);
   
   React.useEffect(function handleRemoteConnection() {
-    if(stream === undefined) return;
+    if (stream === undefined) return;
+    const savedStreamsId: string[] = [];
     peerJS.on('call', (call: PeerJSMediaConnection) => {
       console.log('%c root got remote stream ', 'background: #222; color: #bada55');
       call.answer(stream);
       console.log('%c root send own stream to client ', 'background: #222; color: #bada55');
       call.on('stream', (remoteStream: MediaStream) => {
-        console.log('%c root save client stream ', 'background: #222; color: #bada55');
-        // TODO: check to duplicates
-        setRemoteStreams([...remoteStreams, remoteStream]);
+        if (savedStreamsId.includes(remoteStream.id)) return;
+        console.log('%c root save client stream ', 'background: #222; color: #bada55', remoteStream);
+        setRemoteStreams([ ...remoteStreams, remoteStream ]);
+        savedStreamsId.push(remoteStream.id);
       });
       call.on('error', (error: unknown) => {
         console.log('%c root error ', 'background: #222; color: #bada55', error);
@@ -118,11 +120,14 @@ export function useExchangeMediaStreams(peerJS: PeerJS, peerId: string, stream: 
   React.useEffect(function exchangeStreams() {
     if (stream === undefined) return;
     console.log('%c client send own stream to root ', 'background: #222; color: #bada55');
+    const savedStreamsId: string[] = [];
     const mediaConnect = peerJS.call(peerId, stream);
     setRemoteStreamConnect(mediaConnect);
     mediaConnect.on('stream', (stream: MediaStream) => {
-      console.log('%c client got stream from root ', 'background: #222; color: #bada55');
+      if (savedStreamsId.includes(stream.id)) return;
+      console.log('%c client got stream from root ', 'background: #222; color: #bada55', stream);
       setRemoteStream(stream);
+      savedStreamsId.push(stream.id);
     });
     mediaConnect.on('error', (error: unknown) => {
       console.log('%c client error ', 'background: #222; color: #bada55', error);
