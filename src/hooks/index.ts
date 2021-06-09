@@ -1,7 +1,7 @@
 import React from 'react';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { IPeerId } from '../AppSlice';
-import { isRemoteData, PeerJS, PeerJSDataConnect, PeerJSMediaConnection as PeerJSMediaConnect, RemoteDataPeersIds } from '../models';
+import { isRemoteData, PeerJS, PeerJSDataConnect, PeerJSMediaConnection as PeerJSMediaConnect, PeerJSMediaConnection, RemoteDataPeersIds } from '../models';
 import { AppDispatch, RootState } from "../store";
 
 
@@ -31,8 +31,21 @@ export function useLocalMediaStream() {
   return stream;
 }
 
-export function useRemoteMediaStreams() {
-  // React.useEffect(function handleRemote)
+export function useRemoteMediaStreams(peerJS: PeerJS, stream: MediaStream | undefined) {
+  const [ remoteStreams, setRemoteStreams ] = React.useState<MediaStream[]>([]);
+  
+  React.useEffect(function handleRemoteConnection() {
+    if(stream === undefined) return;
+    peerJS.on('call', (call: PeerJSMediaConnection) => {
+      call.answer(stream);
+      call.on('strem', (remoteStream: MediaStream) => {
+        // TODO: check to duplicates
+        setRemoteStreams([...remoteStreams, remoteStream]);
+      });
+    });
+  }, [ peerJS, stream ]);
+
+  return remoteStreams;
 }
 
 export function useRemotePeerDataOf(connect: PeerJSDataConnect | undefined) {

@@ -17,6 +17,7 @@ export const ClientChatPage: React.FC<IClientChatPageProps> = ({ peerId, rootPee
 
   const [ rootPeerMediaStream, rootPeerMediaConnect ] = useExchangeMediaStreams(peerJS, rootPeerId, localStream);
 
+  console.log('[LOG]: client - rootPeerMediaStream, rootPeerMediaConnect', rootPeerMediaStream, rootPeerMediaConnect);
 
   // const connectionToRootPeer = useConnectToPeer(peerJS, rootPeerId);
 

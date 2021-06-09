@@ -2,7 +2,7 @@ import React from "react";
 import { Chat } from "../../components/Chat";
 import { Typography } from 'antd';
 import { addConnectedClientsIds, addRemoteStream } from "../../AppSlice";
-import { useAppDispatch, useAppSelector, useLocalMediaStream, useRemotePeerData } from "../../hooks";
+import { useAppDispatch, useAppSelector, useLocalMediaStream, useRemoteMediaStreams, useRemotePeerData } from "../../hooks";
 import { PeerJS } from "../../models";
 
 export interface IRootChatPage {
@@ -17,6 +17,9 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
   // const connectedClientsIds = useAppSelector((state) => state.app.rtc.connectedClientsIds);
 
   const localStream = useLocalMediaStream();
+
+  const remoteStreams = useRemoteMediaStreams(peerJS, localStream);
+  console.log('%c [root] remoteStreams ', 'background: #222; color: #bada55', remoteStreams);
 
   // TODO: get strims of clients
 
