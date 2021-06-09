@@ -37,8 +37,11 @@ export function useRemoteMediaStreams(peerJS: PeerJS, stream: MediaStream | unde
   React.useEffect(function handleRemoteConnection() {
     if(stream === undefined) return;
     peerJS.on('call', (call: PeerJSMediaConnection) => {
+      console.log('%c root got remote stream ', 'background: #222; color: #bada55');
       call.answer(stream);
+      console.log('%c root send own stream to client ', 'background: #222; color: #bada55');
       call.on('stream', (remoteStream: MediaStream) => {
+        console.log('%c root save client stream ', 'background: #222; color: #bada55');
         // TODO: check to duplicates
         setRemoteStreams([...remoteStreams, remoteStream]);
       });
@@ -100,8 +103,8 @@ export function useConnectToPeer(peerJS: PeerJS, peerId: IPeerId) {
 export function useReceiveConnection(peerJS: PeerJS) {
   React.useEffect(function handleRemoteConnection() {
     peerJS.on('connection', (connection: PeerJSDataConnect) => {
-      console.log('%c  ', 'background: black; color: white;', connection);
-    })
+
+    });
   })
 }
 
@@ -111,10 +114,11 @@ export function useExchangeMediaStreams(peerJS: PeerJS, peerId: string, stream: 
   
   React.useEffect(function exchangeStreams() {
     if (stream === undefined) return;
+    console.log('%c client send own stream to root ', 'background: #222; color: #bada55');
     const mediaConnect = peerJS.call(peerId, stream);
     setRemoteStreamConnect(mediaConnect);
     mediaConnect.on('stream', (stream: MediaStream) => {
-      console.log('%c exchangeStreams onstream ', 'background: #222; color: #bada55', stream);
+      console.log('%c client got stream from root ', 'background: #222; color: #bada55');
       setRemoteStream(stream);
     });
   }, [ peerId, stream ]);

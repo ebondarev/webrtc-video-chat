@@ -18,7 +18,6 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
   const localStream = useLocalMediaStream();
 
   const remoteStreams = useRemoteMediaStreams(peerJS, localStream);
-  console.log('%c [root] remoteStreams ', 'background: #222; color: #bada55', remoteStreams);
 
   // TODO: get strims of clients
 
