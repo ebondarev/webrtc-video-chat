@@ -59,7 +59,7 @@ function App() {
   const rootPeerId = useAppSelector((state) => state.app.rtc.rootPeerId);
   const peerToPeerNodeType = useAppSelector((state) => state.app.rtc.peerToPeerNodeType);
 
-  const peerJSRef = React.useRef<PeerJS>(new (window as any).Peer({ config: peerConfig, debug: 3 }));
+  const peerJSRef = React.useRef<PeerJS>(new (window as any).Peer({ config: peerConfig, debug: 1 }));
   const peerJS = peerJSRef.current;
 
   React.useEffect(function __forDebug__() {
