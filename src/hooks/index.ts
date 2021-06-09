@@ -114,6 +114,7 @@ export function useExchangeMediaStreams(peerJS: PeerJS, peerId: string, stream: 
     const mediaConnect = peerJS.call(peerId, stream);
     setRemoteStreamConnect(mediaConnect);
     mediaConnect.on('strem', (stream: MediaStream) => {
+      console.log('%c exchangeStreams onstream ', 'background: #222; color: #bada55', stream);
       setRemoteStream(stream);
     });
   }, [ peerId, stream ]);

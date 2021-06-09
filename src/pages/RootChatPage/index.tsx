@@ -1,8 +1,7 @@
 import React from "react";
 import { Chat } from "../../components/Chat";
 import { Typography } from 'antd';
-import { addConnectedClientsIds, addRemoteStream } from "../../AppSlice";
-import { useAppDispatch, useAppSelector, useLocalMediaStream, useRemoteMediaStreams, useRemotePeerData } from "../../hooks";
+import { useAppDispatch, useLocalMediaStream, useRemoteMediaStreams, useRemotePeerData } from "../../hooks";
 import { PeerJS } from "../../models";
 
 export interface IRootChatPage {
