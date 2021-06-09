@@ -38,7 +38,7 @@ export function useRemoteMediaStreams(peerJS: PeerJS, stream: MediaStream | unde
     if(stream === undefined) return;
     peerJS.on('call', (call: PeerJSMediaConnection) => {
       call.answer(stream);
-      call.on('strem', (remoteStream: MediaStream) => {
+      call.on('stream', (remoteStream: MediaStream) => {
         // TODO: check to duplicates
         setRemoteStreams([...remoteStreams, remoteStream]);
       });
@@ -113,7 +113,7 @@ export function useExchangeMediaStreams(peerJS: PeerJS, peerId: string, stream: 
     if (stream === undefined) return;
     const mediaConnect = peerJS.call(peerId, stream);
     setRemoteStreamConnect(mediaConnect);
-    mediaConnect.on('strem', (stream: MediaStream) => {
+    mediaConnect.on('stream', (stream: MediaStream) => {
       console.log('%c exchangeStreams onstream ', 'background: #222; color: #bada55', stream);
       setRemoteStream(stream);
     });

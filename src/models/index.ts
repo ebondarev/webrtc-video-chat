@@ -84,7 +84,7 @@ export interface PeerJSMediaConnection {
   //   | ( (event: 'close', callback: () => void) => void )
   //   | ( (event: 'error', callback: (error: unknown) => void) => void );
   on: (
-    event: 'strem' | 'close' | 'error',
+    event: 'stream' | 'close' | 'error',
     callback: ((stream: MediaStream) => void) | (() => void) | ((error: unknown) => void)
   ) => void;
   open: boolean;
