@@ -1,7 +1,7 @@
 import React from 'react';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { IPeerId } from '../AppSlice';
-import { isRemoteData, PeerJS, PeerJSDataConnect, RemoteDataPeersIds } from '../models';
+import { isRemoteData, PeerJS, PeerJSDataConnect, PeerJSMediaConnection as PeerJSMediaConnect, RemoteDataPeersIds } from '../models';
 import { AppDispatch, RootState } from "../store";
 
 
@@ -9,7 +9,7 @@ import { AppDispatch, RootState } from "../store";
 export const useAppDispatch = () => useDispatch<AppDispatch>();
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
-export function useMediaStream() {
+export function useLocalMediaStream() {
   const [ stream, setStream ] = React.useState<MediaStream>();
 
   React.useEffect(function getMediaStream() {
@@ -29,6 +29,10 @@ export function useMediaStream() {
   }, []);
 
   return stream;
+}
+
+export function useRemoteMediaStreams() {
+  // React.useEffect(function handleRemote)
 }
 
 export function useRemotePeerDataOf(connect: PeerJSDataConnect | undefined) {
@@ -86,4 +90,20 @@ export function useReceiveConnection(peerJS: PeerJS) {
       console.log('%c  ', 'background: black; color: white;', connection);
     })
   })
+}
+
+export function useExchangeMediaStreams(peerJS: PeerJS, peerId: string, stream: MediaStream | undefined) {
+  const [ remoteStream, setRemoteStream ] = React.useState< MediaStream >();
+  const [ remoteStreamConnect, setRemoteStreamConnect ] = React.useState< PeerJSMediaConnect >();
+  
+  React.useEffect(function exchangeStreams() {
+    if (stream === undefined) return;
+    const mediaConnect = peerJS.call(peerId, stream);
+    setRemoteStreamConnect(mediaConnect);
+    mediaConnect.on('strem', (stream: MediaStream) => {
+      setRemoteStream(stream);
+    });
+  }, [ peerId, stream ]);
+
+  return [ remoteStream, remoteStreamConnect ];
 }

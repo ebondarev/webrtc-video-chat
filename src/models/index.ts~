@@ -1,6 +1,0 @@
-import { IPeerId } from "../App";
-
-export interface RemoteData {
-  type: 'clients_ids';
-  payload: IPeerId[];
-}

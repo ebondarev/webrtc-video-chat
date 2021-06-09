@@ -2,7 +2,7 @@ import React from "react";
 import { Chat } from "../../components/Chat";
 import { Typography } from 'antd';
 import { addConnectedClientsIds, addRemoteStream } from "../../AppSlice";
-import { useAppDispatch, useAppSelector, useMediaStream, useRemotePeerData } from "../../hooks";
+import { useAppDispatch, useAppSelector, useLocalMediaStream, useRemotePeerData } from "../../hooks";
 import { PeerJS } from "../../models";
 
 export interface IRootChatPage {
@@ -16,12 +16,14 @@ export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
 
   // const connectedClientsIds = useAppSelector((state) => state.app.rtc.connectedClientsIds);
 
-  const localStream = useMediaStream();
+  const localStream = useLocalMediaStream();
 
-  const remotePeerData = useRemotePeerData(peerJS);
-  React.useEffect(() => {
-    console.log('%c remotePeerData ', 'background: #222; color: #bada55', remotePeerData);
-  }, [ remotePeerData ]);
+  // TODO: get strims of clients
+
+  // const remotePeerData = useRemotePeerData(peerJS);
+  // React.useEffect(() => {
+  //   console.log('%c remotePeerData ', 'background: #222; color: #bada55', remotePeerData);
+  // }, [ remotePeerData ]);
 
 
   // React.useEffect(function handleClientsConnection() {
