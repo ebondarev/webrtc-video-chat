@@ -5,7 +5,6 @@ import { Messanger } from "../Messanger";
 import { TvIcon, DisplayIcon, VideoCameraIcon, MicrophoneIcon, PhoneHangUpIcon } from "../Icons";
 import { Participants } from "../Participants";
 import s from './index.module.css';
-import { useAppSelector } from "../../hooks";
 import { AppContext } from "../../App";
 
 
@@ -17,8 +16,6 @@ export const Chat: React.FC<IChatProps> = () => {
  
   const [ isTalking, setIsTalking ] = React.useState<boolean>(false);
 
-  const participantsVideos = useAppSelector((state) => state.app.rtc.remoteStreams);
-
   if (localPeerId === '') {
     history.push('/');
   }
@@ -27,7 +24,7 @@ export const Chat: React.FC<IChatProps> = () => {
     <>
       <section className={ s['content'] }>
         <main>
-          <Participants videos={ participantsVideos } />
+          {/* <Participants videos={ participantsVideos } /> */}
           {/* <VideoPlayer { ...videoPlayerOptions } /> */}
         </main>
         <aside className={ s['aside'] }>

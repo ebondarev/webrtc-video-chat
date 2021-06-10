@@ -1,13 +1,5 @@
 import React from 'react';
-import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
-import { IPeerId } from '../AppSlice';
 import { isRemoteData, PeerJS, PeerJSDataConnect, PeerJSMediaConnect, RemoteDataPeersIds, RemoteMediaConnect } from '../models';
-import { AppDispatch, RootState } from "../store";
-
-
-// Use throughout your app instead of plain `useDispatch` and `useSelector`
-export const useAppDispatch = () => useDispatch<AppDispatch>();
-export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
 export function useLocalMediaStream() {
   const [ stream, setStream ] = React.useState<MediaStream>();
@@ -99,7 +91,7 @@ export function useRemotePeerData(peerJS: PeerJS) {
   return data;
 }
 
-export function useConnectToPeer(peerJS: PeerJS, peerId: IPeerId) {
+export function useConnectToPeer(peerJS: PeerJS, peerId: string) {
   const [ connect, setConnect ] = React.useState< PeerJSDataConnect >();
 
   React.useEffect(function connectToPeer() {
