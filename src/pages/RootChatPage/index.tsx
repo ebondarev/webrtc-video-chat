@@ -1,7 +1,7 @@
 import React from "react";
 import { Chat } from "../../components/Chat";
 import { Typography } from 'antd';
-import { useAppDispatch, useLocalMediaStream, useRemoteMediaStreams, useRemotePeerData } from "../../hooks";
+import { useAppDispatch, useLocalMediaStream, useRemoteMediaConnect, useRemotePeerData } from "../../hooks";
 import { PeerJS } from "../../models";
 
 export interface IRootChatPage {
@@ -10,70 +10,13 @@ export interface IRootChatPage {
 }
 
 
-export const RootChatPage: React.FC<IRootChatPage> = ({ peerId, peerJS }) => {
+export const RootChatPage: React.FC< IRootChatPage > = ({ peerId, peerJS }) => {
   const dispatch = useAppDispatch();
-
-  // const connectedClientsIds = useAppSelector((state) => state.app.rtc.connectedClientsIds);
 
   const localStream = useLocalMediaStream();
 
-  const remoteStreams = useRemoteMediaStreams(peerJS, localStream);
-
-  // TODO: get strims of clients
-
-  // const remotePeerData = useRemotePeerData(peerJS);
-  // React.useEffect(() => {
-  //   console.log('%c remotePeerData ', 'background: #222; color: #bada55', remotePeerData);
-  // }, [ remotePeerData ]);
-
-
-  // React.useEffect(function handleClientsConnection() {
-  //   const _connectedClientsIds: IPeerId[] = [];
-  //   peerJS.on('connection', (connect: PeerDataConnection) => {
-  //     const peerId = connect.peer;
-  //     if (_connectedClientsIds.includes(peerId)) {
-  //       return;
-  //     }
-  //     dispatch(addConnectedClientsIds(peerId));
-  //     _connectedClientsIds.push(peerId);
-  //   });
-
-  //   const _remoteStreams: MediaStream[] = []; // dispatch срабатывает с задержкой поэтому создана эта переменная
-  //   peerJS.on('call', (call: any) => {
-  //     if (localStream) {
-  //       call.answer(localStream);
-  //     }
-
-  //     const peerId = call.peer;
-  //     if (_connectedClientsIds.includes(peerId)) {
-  //       return;
-  //     }
-  //     dispatch(addConnectedClientsIds(peerId));
-  //     _connectedClientsIds.push(peerId);
-
-  //     call.on('stream', (stream: MediaStream) => {
-  //       const isDuplicateStream = _remoteStreams.some((_stream) => stream.id === _stream.id);
-  //       if (isDuplicateStream) {
-  //         return;
-  //       }
-  //       dispatch(addRemoteStream(stream));
-  //       _remoteStreams.push(stream);
-  //     });
-  //   });
-  // }, [ peerJS, localStream ]);
-
-  // React.useEffect(function sendToClientsConnectedIds() {
-  //   connectedClientsIds.forEach((id) => {
-  //     const connection = peerJS.connect(id);
-  //     connection.on('open', () => {
-  //       const data = {
-  //         type: 'peers_ids',
-  //         payload: [ ...connectedClientsIds, peerId ],
-  //       };
-  //       connection.send(data);
-  //     });
-  //   });
-  // }, [ connectedClientsIds, peerJS ]);
+  /* Рут ожидает подключение (стрим) от клиентов и передаёт им свой стрим */
+  const remoteMediaConnects = useRemoteMediaConnect(peerJS, localStream);
 
   return (
     <>

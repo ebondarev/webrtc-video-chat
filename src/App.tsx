@@ -8,9 +8,8 @@ import React from 'react';
 import { RootChatPage } from './pages/RootChatPage';
 import { ClientChatPage } from './pages/ClientChatPage';
 import { Content } from './containers/Content';
-import { useAppDispatch, useAppSelector } from './hooks';
-import { setRootPeerId, setPeerId, setPeerToPeerNodeType, setUserName as setUserNameAction } from './AppSlice';
-import { PeerJS } from './models';
+import { usePeerId } from './hooks';
+import { PeerJS, PeerToPeerNodeType } from './models';
 
 const peerConfig = {
   'iceServers': [
@@ -52,25 +51,16 @@ const peerConfig = {
 };
 
 function App() {
-  const dispatch = useAppDispatch();
+  const [ userName, setUserName ] = React.useState< string >('');
+  const [ rootPeerId, setRootPeerId ] = React.useState< string >('');
+  const [ peerToPeerNodeType, setCurrentPeerNodeType ] = React.useState< PeerToPeerNodeType >('');
+
+  const { current: peerJS } = React.useRef< PeerJS >(
+    new (window as any).Peer({ config: peerConfig, debug: 1 })
+  );
+
+  const peerId = usePeerId(peerJS);
   const history = useHistory();
-
-  const peerId = useAppSelector((state) => state.app.rtc.peerId);
-  const rootPeerId = useAppSelector((state) => state.app.rtc.rootPeerId);
-  const peerToPeerNodeType = useAppSelector((state) => state.app.rtc.peerToPeerNodeType);
-
-  const peerJSRef = React.useRef<PeerJS>(new (window as any).Peer({ config: peerConfig, debug: 1 }));
-  const peerJS = peerJSRef.current;
-
-  React.useEffect(function __forDebug__() {
-    (window as any).peerJS = peerJS;
-  }, []);
-
-  React.useEffect(function fetchPeerId() {
-    peerJS.on('open', (peerId: string) => {
-      dispatch(setPeerId(peerId));
-    });
-  }, []);
 
   React.useEffect(function redirectToChatPage() {
     if (peerId === '') {
@@ -85,16 +75,16 @@ function App() {
   }, [ peerId, peerToPeerNodeType ]);
 
   function createChat() {
-    dispatch(setPeerToPeerNodeType('root'));
+    setCurrentPeerNodeType('root');
   }
 
   function connectToChat(idToConnect: string) {
-    dispatch(setPeerToPeerNodeType('client'));
-    dispatch(setRootPeerId(idToConnect));
+    setCurrentPeerNodeType('client');
+    setRootPeerId(idToConnect);
   }
 
-  function setUserName(name: string) {
-    dispatch(setUserNameAction(name));
+  function changeUserName(name: string) {
+    setUserName(name);
   }
 
   return (
@@ -121,7 +111,7 @@ function App() {
         <HomePage
           createChat={ createChat }
           connectToChat={ connectToChat }
-          setUserName={ setUserName }
+          changeUserName={ changeUserName }
         />
       </Route>
 

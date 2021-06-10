@@ -8,10 +8,10 @@ const { Search } = Input;
 export interface IHomePageProps {
   createChat: () => void;
   connectToChat: (idToConnect: string) => void;
-  setUserName: (name: string) => void;
+  changeUserName: (name: string) => void;
 }
 
-export const HomePage: React.FC<IHomePageProps> = ({ createChat, connectToChat, setUserName }) => {
+export const HomePage: React.FC<IHomePageProps> = ({ createChat, connectToChat, changeUserName }) => {
   const [ isModalVisible, setIsModalVisible ] = React.useState< boolean >(true);
 
   function handleSearch(idToConnect: string) {
@@ -25,7 +25,7 @@ export const HomePage: React.FC<IHomePageProps> = ({ createChat, connectToChat, 
     if (name === '') {
       return;
     }
-    setUserName(name);
+    changeUserName(name);
     setIsModalVisible(false);
   }
 

@@ -26,12 +26,6 @@ export interface SetUserNameAction extends Action {
   payload: string;
 }
 
-export interface SetPeerToPeerNodeTypeAction extends Action {
-  payload: IPeerToPeerNodeType;
-}
-
-export type IPeerToPeerNodeType = 'root' | 'client' | null;
-
 export interface AddRemoteStreamAction extends Action {
   payload: MediaStream;
 }
@@ -39,35 +33,17 @@ export interface AddRemoteStreamAction extends Action {
 export const appSlice = createSlice({
   name: 'app',
   initialState: {
-    user: {
-      name: '',
-    },
     rtc: {
-      peerId: '' as IPeerId,
-      rootPeerId: '' as IPeerId,
       connectedClientsIds: [] as IPeerId[],
-      peerToPeerNodeType: null as IPeerToPeerNodeType,
       remoteStreams: [] as IParticipantsVideo[],
     },
   },
   reducers: {
-    setPeerId: (state, action: SetPeerIdAction) => {
-      state.rtc.peerId = action.payload;
-    },
     addConnectedClientsIds: (state, action: AddConnectedClientsIds) => {
       state.rtc.connectedClientsIds = [
         ...state.rtc.connectedClientsIds,
         action.payload
       ];
-    },
-    setUserName: (state, action: SetUserNameAction) => {
-      state.user.name = action.payload;
-    },
-    setRootPeerId: (state, action: SetPeerIdAction) => {
-      state.rtc.rootPeerId = action.payload;
-    },
-    setPeerToPeerNodeType: (state, action: SetPeerToPeerNodeTypeAction) => {
-      state.rtc.peerToPeerNodeType = action.payload;
     },
     addRemoteStream: (state, action: AddRemoteStreamAction) => {
       state.rtc.remoteStreams = [
@@ -82,10 +58,6 @@ export const appSlice = createSlice({
 });
 
 export const {
-  setPeerId,
-  setUserName,
-  setRootPeerId,
-  setPeerToPeerNodeType,
   addRemoteStream,
   addConnectedClientsIds
 } = appSlice.actions;

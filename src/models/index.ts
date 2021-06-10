@@ -21,13 +21,13 @@ export interface PeerJSConstructorOptions {
 export type PeerJSOnEvent = 'open' | 'connection' | 'call' | 'close' | 'disconnected' | 'error';
 export type PeerJSOnCallback = ((id: string) => void)
   | ((data: PeerJSDataConnect) => void)
-  | ((media: PeerJSMediaConnection) => void)
+  | ((media: PeerJSMediaConnect) => void)
   | ((error: PeerJSError) => void)
   | (() => void);
 
 export interface PeerJS {
   connect: (id: string, options?: PeerJSConnectOptions) => PeerJSDataConnect;
-  call: (id: string, stream: MediaStream, options?: PeerJSCallOptions) => PeerJSMediaConnection;
+  call: (id: string, stream: MediaStream, options?: PeerJSCallOptions) => PeerJSMediaConnect;
   on: (event: PeerJSOnEvent, callback: PeerJSOnCallback) => void;
   disconnect: () => void;
   reconnect: () => void;
@@ -77,7 +77,7 @@ export interface PeerJSDataConnect {
   bufferSize: number;
 }
 
-export interface PeerJSMediaConnection {
+export interface PeerJSMediaConnect {
   answer: (stream?: MediaStream, options?: { sdpTransform: () => void }) => void;
   close: () => void;
   on: (
@@ -89,11 +89,6 @@ export interface PeerJSMediaConnection {
   peer: string;
   type: 'media';
 }
-
-
-
-
-
 
 export interface RemoteDataPeersIds {
   type: 'peers_ids';
@@ -113,3 +108,11 @@ export function isPeerId(value: unknown): value is string {
   const id = value as string;
   return typeof id === 'string';
 }
+
+export interface RemoteMediaConnect {
+  connect: PeerJSMediaConnect;
+  stream: MediaStream;
+}
+
+export type PeerToPeerNodeType = 'root' | 'client' | '';
+

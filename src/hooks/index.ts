@@ -1,7 +1,7 @@
 import React from 'react';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { IPeerId } from '../AppSlice';
-import { isRemoteData, PeerJS, PeerJSDataConnect, PeerJSMediaConnection as PeerJSMediaConnect, PeerJSMediaConnection, RemoteDataPeersIds } from '../models';
+import { isRemoteData, PeerJS, PeerJSDataConnect, PeerJSMediaConnect, RemoteDataPeersIds, RemoteMediaConnect } from '../models';
 import { AppDispatch, RootState } from "../store";
 
 
@@ -31,29 +31,34 @@ export function useLocalMediaStream() {
   return stream;
 }
 
-export function useRemoteMediaStreams(peerJS: PeerJS, stream: MediaStream | undefined) {
-  const [ remoteStreams, setRemoteStreams ] = React.useState<MediaStream[]>([]);
-  
+/* Ожидает подключение от клиента, сохраняет подключение и передаёт в ответ локальный стрим.
+   Далее ожидает стрим от клиента, сохраняет его и возвращает связанные коннект и стрим. */
+export function useRemoteMediaConnect(peerJS: PeerJS, stream: MediaStream | undefined) {
+  const [ remoteMediaConnects, setRemoteMediaConnects ] = React.useState< RemoteMediaConnect[] >([]);
+
   React.useEffect(function handleRemoteConnection() {
     if (stream === undefined) return;
-    const savedStreamsId: string[] = [];
-    peerJS.on('call', (call: PeerJSMediaConnection) => {
-      console.log('%c root got remote stream ', 'background: #222; color: #bada55');
-      call.answer(stream);
-      console.log('%c root send own stream to client ', 'background: #222; color: #bada55');
-      call.on('stream', (remoteStream: MediaStream) => {
-        if (savedStreamsId.includes(remoteStream.id)) return;
-        console.log('%c root save client stream ', 'background: #222; color: #bada55', remoteStream);
-        setRemoteStreams([ ...remoteStreams, remoteStream ]);
-        savedStreamsId.push(remoteStream.id);
+    /* Обработчик oncall вызывается дважды.
+       После первого вызова стэйт не успевает обновиться и стрим добавляется дважды.
+       Чтобы этого не было введена savedStreamsIds */
+    const remoteStreamsIds: string[] = [];
+    peerJS.on('call', (connect: PeerJSMediaConnect) => {
+      connect.answer(stream);
+      connect.on('stream', (remoteStream: MediaStream) => {
+        if (remoteStreamsIds.includes(remoteStream.id)) return;
+        setRemoteMediaConnects([
+          ...remoteMediaConnects,
+          {
+            connect,
+            stream: remoteStream,
+          }
+        ]);
+        remoteStreamsIds.push(remoteStream.id);
       });
-      call.on('error', (error: unknown) => {
-        console.log('%c root error ', 'background: #222; color: #bada55', error);
-      })
     });
   }, [ peerJS, stream ]);
 
-  return remoteStreams;
+  return remoteMediaConnects;
 }
 
 export function useRemotePeerDataOf(connect: PeerJSDataConnect | undefined) {
@@ -114,25 +119,33 @@ export function useReceiveConnection(peerJS: PeerJS) {
 }
 
 export function useExchangeMediaStreams(peerJS: PeerJS, peerId: string, stream: MediaStream | undefined) {
-  const [ remoteStream, setRemoteStream ] = React.useState< MediaStream >();
-  const [ remoteStreamConnect, setRemoteStreamConnect ] = React.useState< PeerJSMediaConnect >();
-  
+  const [ remoteMediaConnect, setRemoteMediaConnect ] = React.useState< RemoteMediaConnect >();
+
   React.useEffect(function exchangeStreams() {
     if (stream === undefined) return;
-    console.log('%c client send own stream to root ', 'background: #222; color: #bada55');
-    const savedStreamsId: string[] = [];
-    const mediaConnect = peerJS.call(peerId, stream);
-    setRemoteStreamConnect(mediaConnect);
-    mediaConnect.on('stream', (stream: MediaStream) => {
-      if (savedStreamsId.includes(stream.id)) return;
-      console.log('%c client got stream from root ', 'background: #222; color: #bada55', stream);
-      setRemoteStream(stream);
-      savedStreamsId.push(stream.id);
+    /* Обработчик onstream вызывается дважды.
+       После первого вызова стэйт не успевает обновиться и стрим добавляется дважды.
+       Чтобы этого не была введена savedStreamsIds */
+    const savedStreamsIds: string[] = [];
+    const connect = peerJS.call(peerId, stream);
+    connect.on('stream', (stream: MediaStream) => {
+      if (savedStreamsIds.includes(stream.id)) return;
+      setRemoteMediaConnect({ connect, stream });
+      savedStreamsIds.push(stream.id);
     });
-    mediaConnect.on('error', (error: unknown) => {
-      console.log('%c client error ', 'background: #222; color: #bada55', error);
-    })
   }, [ peerId, stream ]);
 
-  return [ remoteStream, remoteStreamConnect ];
+  return remoteMediaConnect;
+}
+
+export function usePeerId(peerJS: PeerJS) {
+  const [ peerId, setPeerId ] = React.useState< string >('');
+
+  React.useEffect(function openPeer() {
+    peerJS.on('open', (peerId: string) => {
+      setPeerId(peerId);
+    });
+  }, []);
+
+  return peerId;
 }
