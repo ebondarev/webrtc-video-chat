@@ -23,7 +23,7 @@ export const Chat: React.FC<IChatProps> = () => {
     <>
       <section className={ s['content'] }>
         <main>
-          {/* <Participants videos={ participantsVideos } /> */}
+          <Participants />
           {/* <VideoPlayer { ...videoPlayerOptions } /> */}
         </main>
         <aside className={ s['aside'] }>

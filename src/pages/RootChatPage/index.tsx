@@ -1,20 +1,20 @@
 import React from "react";
 import { Chat } from "../../components/Chat";
 import { Typography } from 'antd';
-import { useLocalMediaStream, useRemoteMediaConnect, useRemotePeerData } from "../../hooks";
+import { useLocalMediaStream, useRemoteMediaConnects, useRemotePeerData } from "../../hooks";
 import { PeerJS } from "../../models";
 import { AppContext } from "../../App";
 
 export interface IRootChatPage { }
 
-
 export const RootChatPage: React.FC< IRootChatPage > = () => {
-  const { localPeerId, peerJS } = React.useContext(AppContext);
+  const appContext = React.useContext(AppContext);
+  const { localPeerId, peerJS, remoteMediaConnects } = appContext;
 
   const localStream = useLocalMediaStream();
 
-  /* Рут ожидает подключение (стрим) от клиентов и передаёт им свой стрим */
-  const remoteMediaConnects = useRemoteMediaConnect(peerJS, localStream);
+  /* Рут ожидает подключения (стримы) от клиентов и передаёт им свой стрим */
+  const remoteClientsMediaConnects = useRemoteMediaConnects(peerJS, localStream);
 
   return (
     <div className="page">
@@ -24,7 +24,14 @@ export const RootChatPage: React.FC< IRootChatPage > = () => {
       >
         ID: { localPeerId }
       </Typography.Title>
-      <Chat />
+      <AppContext.Provider
+        value={{
+          ...appContext,
+          remoteMediaConnects: [ ...remoteMediaConnects, ...remoteClientsMediaConnects]
+        }}
+      >
+        <Chat />
+      </AppContext.Provider>
     </div>
   );
 }

@@ -8,7 +8,7 @@ import React from 'react';
 import { RootChatPage } from './pages/RootChatPage';
 import { ClientChatPage } from './pages/ClientChatPage';
 import { usePeerId as useLocalPeerId } from './hooks';
-import { PeerJS, NodeType } from './models';
+import { PeerJS, NodeType, RemoteMediaConnect } from './models';
 
 const peerConfig = {
   'iceServers': [
@@ -54,6 +54,7 @@ export const AppContext = React.createContext({
   localPeerId: '',
   rootPeerId: '',
   peerJS: {} as PeerJS,
+  remoteMediaConnects: [] as RemoteMediaConnect[],
 });
 
 function App() {
@@ -90,7 +91,7 @@ function App() {
   }
 
   return (
-    <AppContext.Provider value={{ userName, localPeerId, peerJS, rootPeerId }}>
+    <AppContext.Provider value={{ userName, localPeerId, peerJS, rootPeerId, remoteMediaConnects: [] }}>
       <div className={ s['app'] }>
 
         <Route path="/root-chat">

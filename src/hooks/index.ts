@@ -25,7 +25,7 @@ export function useLocalMediaStream() {
 
 /* Ожидает подключение от клиента, сохраняет подключение и передаёт в ответ локальный стрим.
    Далее ожидает стрим от клиента, сохраняет его и возвращает связанные коннект и стрим. */
-export function useRemoteMediaConnect(peerJS: PeerJS, stream: MediaStream | undefined) {
+export function useRemoteMediaConnects(peerJS: PeerJS, stream: MediaStream | undefined) {
   const [ remoteMediaConnects, setRemoteMediaConnects ] = React.useState< RemoteMediaConnect[] >([]);
 
   React.useEffect(function handleRemoteConnection() {
