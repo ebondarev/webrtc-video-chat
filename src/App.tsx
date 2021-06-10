@@ -9,7 +9,7 @@ import { RootChatPage } from './pages/RootChatPage';
 import { ClientChatPage } from './pages/ClientChatPage';
 import { Content } from './containers/Content';
 import { usePeerId as useLocalPeerId } from './hooks';
-import { PeerJS, PeerToPeerNodeType } from './models';
+import { PeerJS, NodeType } from './models';
 
 const peerConfig = {
   'iceServers': [
@@ -60,7 +60,7 @@ export const AppContext = React.createContext({
 function App() {
   const [ userName, setUserName ] = React.useState< string >('');
   const [ rootPeerId, setRootPeerId ] = React.useState< string >('');
-  const [ peerToPeerNodeType, setCurrentPeerNodeType ] = React.useState< PeerToPeerNodeType >('');
+  const [ nodeType, setNodeType ] = React.useState< NodeType >('');
 
   const { current: peerJS } = React.useRef< PeerJS >(
     new (window as any).Peer({ config: peerConfig, debug: 1 })
@@ -73,20 +73,20 @@ function App() {
     if (localPeerId === '') {
       return;
     }
-    if (peerToPeerNodeType === 'root') {
+    if (nodeType === 'root') {
       return history.push('/root-chat');
     }
-    if (peerToPeerNodeType === 'client') {
+    if (nodeType === 'client') {
       return history.push('/client-chat');
     }
-  }, [ localPeerId, peerToPeerNodeType ]);
+  }, [ localPeerId, nodeType ]);
 
   function chooseRoot() {
-    setCurrentPeerNodeType('root');
+    setNodeType('root');
   }
 
   function chooseClient(rootId: string) {
-    setCurrentPeerNodeType('client');
+    setNodeType('client');
     setRootPeerId(rootId);
   }
 
