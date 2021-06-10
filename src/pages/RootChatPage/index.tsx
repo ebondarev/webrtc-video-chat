@@ -1,17 +1,15 @@
 import React from "react";
 import { Chat } from "../../components/Chat";
 import { Typography } from 'antd';
-import { useAppDispatch, useLocalMediaStream, useRemoteMediaConnect, useRemotePeerData } from "../../hooks";
+import { useLocalMediaStream, useRemoteMediaConnect, useRemotePeerData } from "../../hooks";
 import { PeerJS } from "../../models";
+import { AppContext } from "../../App";
 
-export interface IRootChatPage {
-  peerId: string;
-  peerJS: PeerJS;
-}
+export interface IRootChatPage { }
 
 
-export const RootChatPage: React.FC< IRootChatPage > = ({ peerId, peerJS }) => {
-  const dispatch = useAppDispatch();
+export const RootChatPage: React.FC< IRootChatPage > = () => {
+  const { localPeerId, peerJS } = React.useContext(AppContext);
 
   const localStream = useLocalMediaStream();
 
@@ -24,9 +22,9 @@ export const RootChatPage: React.FC< IRootChatPage > = ({ peerId, peerJS }) => {
         level={3}
         style={{ color: 'rgb(209, 209, 209)' }}
       >
-        ID: { peerId }
+        ID: { localPeerId }
       </Typography.Title>
-      <Chat peerId={ peerId } />
+      <Chat />
     </>
   );
 }

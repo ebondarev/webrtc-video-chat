@@ -8,7 +8,7 @@ import React from 'react';
 import { RootChatPage } from './pages/RootChatPage';
 import { ClientChatPage } from './pages/ClientChatPage';
 import { Content } from './containers/Content';
-import { usePeerId } from './hooks';
+import { usePeerId as useLocalPeerId } from './hooks';
 import { PeerJS, PeerToPeerNodeType } from './models';
 
 const peerConfig = {
@@ -50,6 +50,13 @@ const peerConfig = {
   ]
 };
 
+export const AppContext = React.createContext({
+  userName: '',
+  localPeerId: '',
+  rootPeerId: '',
+  peerJS: {} as PeerJS,
+});
+
 function App() {
   const [ userName, setUserName ] = React.useState< string >('');
   const [ rootPeerId, setRootPeerId ] = React.useState< string >('');
@@ -59,11 +66,11 @@ function App() {
     new (window as any).Peer({ config: peerConfig, debug: 1 })
   );
 
-  const peerId = usePeerId(peerJS);
+  const localPeerId = useLocalPeerId(peerJS);
   const history = useHistory();
 
   React.useEffect(function redirectToChatPage() {
-    if (peerId === '') {
+    if (localPeerId === '') {
       return;
     }
     if (peerToPeerNodeType === 'root') {
@@ -72,50 +79,41 @@ function App() {
     if (peerToPeerNodeType === 'client') {
       return history.push('/client-chat');
     }
-  }, [ peerId, peerToPeerNodeType ]);
+  }, [ localPeerId, peerToPeerNodeType ]);
 
-  function createChat() {
+  function chooseRoot() {
     setCurrentPeerNodeType('root');
   }
 
-  function connectToChat(idToConnect: string) {
+  function chooseClient(rootId: string) {
     setCurrentPeerNodeType('client');
-    setRootPeerId(idToConnect);
-  }
-
-  function changeUserName(name: string) {
-    setUserName(name);
+    setRootPeerId(rootId);
   }
 
   return (
-    <div className={ s['app'] }>
+    <AppContext.Provider value={{ userName, localPeerId, peerJS, rootPeerId }}>
+      <div className={ s['app'] }>
 
-      <Route path="/root-chat">
-        <Content.Column>
-          <RootChatPage
-            peerId={ peerId }
-            peerJS={ peerJS }
+        <Route path="/root-chat">
+          <Content.Column>
+            <RootChatPage />
+          </Content.Column>
+        </Route>
+
+        <Route path="/client-chat">
+          <ClientChatPage />
+        </Route>
+
+        <Route exact path="/">
+          <HomePage
+            chooseRoot={ chooseRoot }
+            chooseClient={ chooseClient }
+            setUserName={ setUserName }
           />
-        </Content.Column>
-      </Route>
+        </Route>
 
-      <Route path="/client-chat">
-        <ClientChatPage
-          peerId={ peerId }
-          rootPeerId= { rootPeerId }
-          peerJS={ peerJS }
-        />
-      </Route>
-
-      <Route exact path="/">
-        <HomePage
-          createChat={ createChat }
-          connectToChat={ connectToChat }
-          changeUserName={ changeUserName }
-        />
-      </Route>
-
-    </div>
+      </div>
+    </AppContext.Provider>
   );
 }
 

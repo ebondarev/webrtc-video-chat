@@ -6,26 +6,26 @@ import Modal from "antd/lib/modal/Modal";
 const { Search } = Input;
 
 export interface IHomePageProps {
-  createChat: () => void;
-  connectToChat: (idToConnect: string) => void;
-  changeUserName: (name: string) => void;
+  chooseRoot: () => void;
+  chooseClient: (idToConnect: string) => void;
+  setUserName: (name: string) => void;
 }
 
-export const HomePage: React.FC<IHomePageProps> = ({ createChat, connectToChat, changeUserName }) => {
+export const HomePage: React.FC<IHomePageProps> = ({ chooseRoot, chooseClient, setUserName }) => {
   const [ isModalVisible, setIsModalVisible ] = React.useState< boolean >(true);
 
-  function handleSearch(idToConnect: string) {
-    if (idToConnect === '') {
+  function handleInputRootId(rootId: string) {
+    if (rootId === '') {
       return;
     }
-    connectToChat(idToConnect);
+    chooseClient(rootId);
   }
 
-  function handleUserName(name: string) {
+  function handleInputUserName(name: string) {
     if (name === '') {
       return;
     }
-    changeUserName(name);
+    setUserName(name);
     setIsModalVisible(false);
   }
 
@@ -35,7 +35,7 @@ export const HomePage: React.FC<IHomePageProps> = ({ createChat, connectToChat, 
         className={ s['button_fluid'] }
         type="primary"
         size="large"
-        onClick={ createChat }
+        onClick={ chooseRoot }
       >
         Create Chat
       </Button>
@@ -44,7 +44,7 @@ export const HomePage: React.FC<IHomePageProps> = ({ createChat, connectToChat, 
         allowClear
         enterButton="Connect"
         size="large"
-        onSearch={ handleSearch }
+        onSearch={ handleInputRootId }
       />
 
       <Modal
@@ -57,7 +57,7 @@ export const HomePage: React.FC<IHomePageProps> = ({ createChat, connectToChat, 
           allowClear
           enterButton="Apply"
           size="large"
-          onSearch={ handleUserName }
+          onSearch={ handleInputUserName }
         />
       </Modal>
     </div>

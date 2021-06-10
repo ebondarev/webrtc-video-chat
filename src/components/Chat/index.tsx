@@ -6,20 +6,20 @@ import { TvIcon, DisplayIcon, VideoCameraIcon, MicrophoneIcon, PhoneHangUpIcon }
 import { Participants } from "../Participants";
 import s from './index.module.css';
 import { useAppSelector } from "../../hooks";
+import { AppContext } from "../../App";
 
 
-export interface IChatProps {
-  peerId: string;
-}
+export interface IChatProps { }
 
-export const Chat: React.FC<IChatProps> = ({ peerId }) => {
+export const Chat: React.FC<IChatProps> = () => {
   const history = useHistory();
-  
+  const { localPeerId } = React.useContext(AppContext);
+ 
   const [ isTalking, setIsTalking ] = React.useState<boolean>(false);
 
   const participantsVideos = useAppSelector((state) => state.app.rtc.remoteStreams);
 
-  if (peerId === '') {
+  if (localPeerId === '') {
     history.push('/');
   }
 
