@@ -7,7 +7,6 @@ import { HomePage } from './pages/HomePage';
 import React from 'react';
 import { RootChatPage } from './pages/RootChatPage';
 import { ClientChatPage } from './pages/ClientChatPage';
-import { Content } from './containers/Content';
 import { usePeerId as useLocalPeerId } from './hooks';
 import { PeerJS, NodeType } from './models';
 
@@ -95,9 +94,7 @@ function App() {
       <div className={ s['app'] }>
 
         <Route path="/root-chat">
-          <Content.Column>
-            <RootChatPage />
-          </Content.Column>
+          <RootChatPage />
         </Route>
 
         <Route path="/client-chat">

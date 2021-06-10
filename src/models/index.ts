@@ -114,5 +114,5 @@ export interface RemoteMediaConnect {
   stream: MediaStream;
 }
 
-export type PeerToPeerNodeType = 'root' | 'client' | '';
+export type NodeType = 'root' | 'client' | '';
 
