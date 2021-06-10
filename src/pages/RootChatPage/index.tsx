@@ -17,7 +17,7 @@ export const RootChatPage: React.FC< IRootChatPage > = () => {
   const remoteMediaConnects = useRemoteMediaConnect(peerJS, localStream);
 
   return (
-    <>
+    <div className="page">
       <Typography.Title
         level={3}
         style={{ color: 'rgb(209, 209, 209)' }}
@@ -25,6 +25,6 @@ export const RootChatPage: React.FC< IRootChatPage > = () => {
         ID: { localPeerId }
       </Typography.Title>
       <Chat />
-    </>
+    </div>
   );
 }

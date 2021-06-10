@@ -14,6 +14,8 @@ export const ClientChatPage: React.FC< IClientChatPageProps > = () => {
   const remoteMediaConnect = useExchangeMediaStreams(peerJS, rootPeerId, localStream);
 
   return (
-    <Chat />
+    <div className="page">
+      <Chat />
+    </div>
   );
 }

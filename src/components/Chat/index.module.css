@@ -7,16 +7,3 @@
 .aside {
   display: flex;
 }
-
-.icons {
-  display: flex;
-  flex-direction: row;
-  list-style-type: none;
-  justify-content: center;
-  gap: 10px;
-}
-
-.button {
-  color: #fff;
-  font-size: 30px;
-}
