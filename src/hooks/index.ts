@@ -23,10 +23,24 @@ export function useLocalMediaStream() {
   return stream;
 }
 
+function reducer(state: RemoteMediaConnect[], action: {type: string; payload: RemoteMediaConnect}) {
+  console.log('reducer', state);
+  switch (action.type) {
+    case 'add':
+      console.log('[add]', action.payload.stream.id)
+      return [ ...state, action.payload ];
+    default:
+      return state;
+  }
+}
+
 /* Ожидает подключение от клиента, сохраняет подключение и передаёт в ответ локальный стрим.
    Далее ожидает стрим от клиента, сохраняет его и возвращает связанные коннект и стрим. */
 export function useRemoteMediaConnects(peerJS: PeerJS, stream: MediaStream | undefined) {
   const [ remoteMediaConnects, setRemoteMediaConnects ] = React.useState< RemoteMediaConnect[] >([]);
+  const [ state, dispatch ] = React.useReducer(reducer, []);
+
+  console.log('state on top', state);
 
   React.useEffect(function handleRemoteConnection() {
     if (stream === undefined) return;
@@ -38,6 +52,8 @@ export function useRemoteMediaConnects(peerJS: PeerJS, stream: MediaStream | und
       connect.answer(stream);
       connect.on('stream', (remoteStream: MediaStream) => {
         if (remoteStreamsIds.includes(remoteStream.id)) return;
+        console.log('[state]', state);
+        dispatch({type: 'add', payload: {connect, stream: remoteStream}});
         setRemoteMediaConnects([
           ...remoteMediaConnects,
           {
