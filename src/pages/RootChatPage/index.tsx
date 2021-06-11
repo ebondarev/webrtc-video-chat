@@ -9,9 +9,7 @@ export interface IRootChatPage { }
 
 export const RootChatPage: React.FC< IRootChatPage > = () => {
   const appContext = React.useContext(AppContext);
-  const { localPeerId, peerJS } = appContext;
-
-  const localStream = useLocalMediaStream();
+  const { localPeerId, peerJS, localStream } = appContext;
 
   /* Рут ожидает подключения (стримы) от клиентов и передаёт им свой стрим */
   const remoteClientsMediaConnects = useRemoteMediaConnects(peerJS, localStream);

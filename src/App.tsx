@@ -7,7 +7,7 @@ import { HomePage } from './pages/HomePage';
 import React from 'react';
 import { RootChatPage } from './pages/RootChatPage';
 import { ClientChatPage } from './pages/ClientChatPage';
-import { usePeerId as useLocalPeerId } from './hooks';
+import { useLocalMediaStream, usePeerId as useLocalPeerId } from './hooks';
 import { PeerJS, NodeType, RemoteMediaConnect } from './models';
 
 const peerConfig = {
@@ -55,6 +55,7 @@ export const AppContext = React.createContext({
   rootPeerId: '',
   peerJS: {} as PeerJS,
   remoteMediaConnects: [] as RemoteMediaConnect[],
+  localStream: undefined as MediaStream | undefined,
 });
 
 function App() {
@@ -68,6 +69,7 @@ function App() {
 
   const localPeerId = useLocalPeerId(peerJS);
   const history = useHistory();
+  const localStream = useLocalMediaStream();
 
   React.useEffect(function redirectToChatPage() {
     if (localPeerId === '') {
@@ -91,7 +93,7 @@ function App() {
   }
 
   return (
-    <AppContext.Provider value={{ userName, localPeerId, peerJS, rootPeerId, remoteMediaConnects: [] }}>
+    <AppContext.Provider value={{ userName, localPeerId, peerJS, rootPeerId, localStream, remoteMediaConnects: [] }}>
       <div className={ s['app'] }>
 
         <Route path="/root-chat">

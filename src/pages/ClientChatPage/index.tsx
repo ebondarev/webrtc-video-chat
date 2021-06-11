@@ -6,9 +6,8 @@ import { useExchangeMediaStreams, useLocalMediaStream, useRemotePeerData } from 
 export interface IClientChatPageProps { }
 
 export const ClientChatPage: React.FC< IClientChatPageProps > = () => {
-  const localStream = useLocalMediaStream();
   const appContext = React.useContext(AppContext);
-  const { peerJS, rootPeerId, remoteMediaConnects } = appContext;
+  const { peerJS, rootPeerId, remoteMediaConnects, localStream } = appContext;
 
   /* Клиент инициирует соединение с рутом, передаёт руту свой стрим и ожидает стрим от него */
   const remoteRootMediaConnect = useExchangeMediaStreams(peerJS, rootPeerId, localStream);
