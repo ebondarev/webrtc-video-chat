@@ -91,14 +91,14 @@ export interface PeerJSMediaConnect {
 }
 
 export interface RemoteDataPeersIds {
-  type: 'peers_ids';
+  type: 'connected_ids';
   payload: string[];
 }
 
 export function isRemoteData(value: unknown): value is RemoteDataPeersIds {
   const data = value as RemoteDataPeersIds;
   return (
-    (data.type === 'peers_ids')
+    (data.type === 'connected_ids')
     && Array.isArray(data.payload)
     && data.payload.every(isPeerId)
   );

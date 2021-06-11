@@ -3,6 +3,7 @@ import { Chat } from "../../components/Chat";
 import { Typography } from 'antd';
 import { useLocalMediaStream, useRemoteMediaConnects } from "../../hooks";
 import { AppContext } from "../../App";
+import { PeerJS, RemoteMediaConnect } from "../../models";
 
 export interface IRootChatPage { }
 
@@ -14,6 +15,10 @@ export const RootChatPage: React.FC< IRootChatPage > = () => {
 
   /* Рут ожидает подключения (стримы) от клиентов и передаёт им свой стрим */
   const remoteClientsMediaConnects = useRemoteMediaConnects(peerJS, localStream);
+
+  React.useEffect(() => {
+    notificationClientsAboutConnects(peerJS, remoteClientsMediaConnects);
+  }, [ remoteClientsMediaConnects ]);
 
   return (
     <div className="page">
@@ -33,4 +38,18 @@ export const RootChatPage: React.FC< IRootChatPage > = () => {
       </AppContext.Provider>
     </div>
   );
+}
+
+
+function notificationClientsAboutConnects(peerJS: PeerJS, remoteClientsMediaConnects: RemoteMediaConnect[]) {
+  const connectedIds = remoteClientsMediaConnects.map((item) => item.connect.peer);
+  remoteClientsMediaConnects.forEach((item) => {
+    const connect = peerJS.connect(item.connect.peer);
+    connect.on('open', () => {
+      connect.send({
+        type: 'connected_ids',
+        payload: connectedIds.filter((id) => id !== item.connect.peer),
+      });
+    });
+  });
 }
