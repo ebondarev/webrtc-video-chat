@@ -2,7 +2,6 @@ import React from "react";
 import { AppContext } from "../../App";
 import { Chat } from "../../components/Chat";
 import { useExchangeMediaStreams, useLocalMediaStream } from "../../hooks";
-import { PeerJS } from "../../models";
 
 export interface IClientChatPageProps { }
 

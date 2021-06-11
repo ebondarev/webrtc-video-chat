@@ -30,9 +30,6 @@ export function useRemoteMediaConnects(peerJS: PeerJS, stream: MediaStream | und
 
   React.useEffect(function handleRemoteConnection() {
     if (stream === undefined) return;
-    /* Обработчик oncall вызывается дважды.
-       После первого вызова стэйт не успевает обновиться и стрим добавляется дважды.
-       Чтобы этого не было введена savedStreamsIds */
     peerJS.on('call', (connect: PeerJSMediaConnect) => {
       connect.answer(stream);
       connect.on('stream', (remoteStream: MediaStream) => {
