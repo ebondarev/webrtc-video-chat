@@ -10,16 +10,24 @@ export interface IParticipantsVideo extends IVideoPlayerProps {
 export interface IParticipantsProps { }
 
 export const Participants: React.FC<IParticipantsProps> = () => {
-  const { remoteMediaConnects } = React.useContext(AppContext);
+  const { remoteMediaConnects, localStream } = React.useContext(AppContext);
 
   const videos = React.useMemo(() => {
-    return remoteMediaConnects.map((item) => {
-      return {
+    const _videos = [];
+    if (localStream) {
+      _videos.push({
+        id: localStream.id,
+        srcObject: localStream,
+      });
+    }
+    remoteMediaConnects.forEach((item) => {
+      _videos.push({
         id: item.connect.peer,
         srcObject: item.stream,
-      };
+      });
     });
-  }, [ remoteMediaConnects ]);
+    return _videos;
+  }, [ remoteMediaConnects, localStream ]);
 
   return (
     <ul className={ s['participants'] }>

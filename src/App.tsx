@@ -49,13 +49,22 @@ const peerConfig = {
   ]
 };
 
-export const AppContext = React.createContext({
+export interface IAppContext {
+  userName: string;
+  localPeerId: string;
+  rootPeerId: string;
+  peerJS: PeerJS;
+  remoteMediaConnects: RemoteMediaConnect[];
+  localStream?: MediaStream | undefined;
+}
+
+export const AppContext = React.createContext< IAppContext >({
   userName: '',
   localPeerId: '',
   rootPeerId: '',
   peerJS: {} as PeerJS,
   remoteMediaConnects: [] as RemoteMediaConnect[],
-  localStream: undefined as MediaStream | undefined,
+  localStream: undefined,
 });
 
 function App() {
@@ -69,7 +78,6 @@ function App() {
 
   const localPeerId = useLocalPeerId(peerJS);
   const history = useHistory();
-  const localStream = useLocalMediaStream();
 
   React.useEffect(function redirectToChatPage() {
     if (localPeerId === '') {
@@ -93,7 +101,7 @@ function App() {
   }
 
   return (
-    <AppContext.Provider value={{ userName, localPeerId, peerJS, rootPeerId, localStream, remoteMediaConnects: [] }}>
+    <AppContext.Provider value={{ userName, localPeerId, peerJS, rootPeerId, remoteMediaConnects: [] }}>
       <div className={ s['app'] }>
 
         <Route path="/root-chat">

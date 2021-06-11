@@ -9,13 +9,14 @@ export interface IRootChatPage { }
 
 export const RootChatPage: React.FC< IRootChatPage > = () => {
   const appContext = React.useContext(AppContext);
-  const { localPeerId, peerJS, localStream } = appContext;
+  const localStream = useLocalMediaStream();
+  const { localPeerId, peerJS } = appContext;
 
   /* Рут ожидает подключения (стримы) от клиентов и передаёт им свой стрим */
   const remoteClientsMediaConnects = useRemoteMediaConnects(peerJS, localStream);
 
   React.useEffect(() => {
-    notificationClientsAboutConnects(peerJS, remoteClientsMediaConnects);
+    notifyClientsAboutConnects(peerJS, remoteClientsMediaConnects);
   }, [ remoteClientsMediaConnects ]);
 
   return (
@@ -29,7 +30,8 @@ export const RootChatPage: React.FC< IRootChatPage > = () => {
       <AppContext.Provider
         value={{
           ...appContext,
-          remoteMediaConnects: remoteClientsMediaConnects
+          remoteMediaConnects: remoteClientsMediaConnects,
+          localStream
         }}
       >
         <Chat />
@@ -39,14 +41,20 @@ export const RootChatPage: React.FC< IRootChatPage > = () => {
 }
 
 
-function notificationClientsAboutConnects(peerJS: PeerJS, remoteClientsMediaConnects: RemoteMediaConnect[]) {
+function notifyClientsAboutConnects(peerJS: PeerJS, remoteClientsMediaConnects: RemoteMediaConnect[]) {
   const connectedIds = remoteClientsMediaConnects.map((item) => item.connect.peer);
+  console.log('[remoteClientsMediaConnects]', remoteClientsMediaConnects);
   remoteClientsMediaConnects.forEach((item) => {
+    const payload = connectedIds.filter((id) => id !== item.connect.peer);
+    if (payload.length === 0) {
+      return;
+    }
     const connect = peerJS.connect(item.connect.peer);
+    console.log('[root payload]', payload);
     connect.on('open', () => {
       connect.send({
         type: 'connected_ids',
-        payload: connectedIds.filter((id) => id !== item.connect.peer),
+        payload,
       });
     });
   });

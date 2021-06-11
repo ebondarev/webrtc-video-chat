@@ -112,14 +112,14 @@ export function useExchangeMediaStreams(peerJS: PeerJS, peerId: string, stream: 
   React.useEffect(function exchangeStreams() {
     if (stream === undefined) return;
     /* Обработчик onstream вызывается дважды.
-      После первого вызова стэйт не успевает обновиться и стрим добавляется дважды.
-      Чтобы этого не была введена savedStreamsIds */
+    После первого вызова стэйт не успевает обновиться и стрим добавляется дважды.
+    Чтобы этого не была введена savedStreamsIds */
     const savedStreamsIds: string[] = [];
     const connect = peerJS.call(peerId, stream);
     connect.on('stream', (stream: MediaStream) => {
       if (savedStreamsIds.includes(stream.id)) return;
       setRemoteMediaConnect({ connect, stream });
-      savedStreamsIds.push(stream.id);
+        savedStreamsIds.push(stream.id);
     });
   }, [ peerId, stream ]);
 
