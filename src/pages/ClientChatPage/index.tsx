@@ -21,7 +21,8 @@ export const ClientChatPage: React.FC< IClientChatPageProps > = () => {
       <AppContext.Provider
         value={{
           ...appContext,
-          remoteMediaConnects: remoteRootMediaConnect ? [ ...remoteMediaConnects, remoteRootMediaConnect ] : remoteMediaConnects
+          remoteMediaConnects: remoteRootMediaConnect ? [ ...remoteMediaConnects, remoteRootMediaConnect ] : remoteMediaConnects,
+          localStream
         }}
       >
         <Chat />
