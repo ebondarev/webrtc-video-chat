@@ -7,7 +7,7 @@ export interface IClientChatPageProps { }
 
 export const ClientChatPage: React.FC< IClientChatPageProps > = () => {
   const appContext = React.useContext(AppContext);
-  const { peerJS, rootPeerId, remoteMediaConnects } = appContext;
+  const { peerJS, rootPeerId, remoteMediaConnects, localPeerId } = appContext;
 
   const localStream = useLocalMediaStream();
 
@@ -28,7 +28,7 @@ export const ClientChatPage: React.FC< IClientChatPageProps > = () => {
     if (localStream === undefined) {
       return;
     }
-    console.log('[remotePeerIds.payload]', remotePeerIds.payload);
+    console.log('[remotePeerIds.payload] - [localPeerId]', remotePeerIds.payload, localPeerId);
     remotePeerIds.payload.forEach((id) => {
       const call = peerJS.call(id, localStream);
       call.on('stream', (stream: MediaStream) => {
