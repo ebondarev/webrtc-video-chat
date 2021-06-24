@@ -20,12 +20,15 @@ export const ClientChatPage: React.FC< IClientChatPageProps > = () => {
   // const remotePeerMediaConnects = useExchangeMediaStreams(peerJS, remotePeerIds?.payload || [], localStream);
   // console.log('%c [remotePeerMediaConnects] ', 'background: #000; color: #fff;', remotePeerMediaConnects);
   React.useEffect(function exchangeStreams() {
+    console.log('[remotePeerIds]', remotePeerIds);
     if (remotePeerIds === undefined) {
       return;
     }
+    console.log('[localStream]', localStream);
     if (localStream === undefined) {
       return;
     }
+    console.log('[remotePeerIds.payload]', remotePeerIds.payload);
     remotePeerIds.payload.forEach((id) => {
       const call = peerJS.call(id, localStream);
       call.on('stream', (stream: MediaStream) => {
