@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebRTC</title>
+</head>
+<body>
+  <h1 class="peer-id"></h1>
+
+  <div class="choose-type">
+    <div class="create-root">
+      <button class="create-root__btn">Create Root</button>
+    </div>
+
+    <div class="call-to">
+      <input type="text" name="call-to__input" id="call-to__input" class="call-to__input">
+      <button class="call-to__btn">Call</button>
+    </div>
+  </div>
+
+  <div class="chat-page" style="display: none;">
+    <h2 class="client-type"></h2>
+    <div class="users-video"></div>
+  </div>
+
+  <script src="./peerjs.min.js"></script>
+  <script src="./main.js"></script>
+</body>
+</html>

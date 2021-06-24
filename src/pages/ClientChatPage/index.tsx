@@ -2,19 +2,51 @@ import React from "react";
 import { AppContext } from "../../App";
 import { Chat } from "../../components/Chat";
 import { useExchangeMediaStreams, useLocalMediaStream, useRemotePeerData } from "../../hooks";
+import { PeerJSMediaConnect } from "../../models";
 
 export interface IClientChatPageProps { }
 
 export const ClientChatPage: React.FC< IClientChatPageProps > = () => {
   const appContext = React.useContext(AppContext);
-  const { peerJS, rootPeerId, remoteMediaConnects, localStream } = appContext;
+  const { peerJS, rootPeerId, remoteMediaConnects, localPeerId } = appContext;
+
+  const localStream = useLocalMediaStream();
 
   /* Клиент инициирует соединение с рутом, передаёт руту свой стрим и ожидает стрим от него */
   const remoteRootMediaConnect = useExchangeMediaStreams(peerJS, rootPeerId, localStream);
 
   const remotePeerIds = useRemotePeerData(peerJS);
+  console.log('%c [полученные от root ids других клиентов]', 'background: #222; color: #bada55', remotePeerIds);
   // TODO: exchange data with other clients
-  // const remotePeerMediaConnects = useExchangeMediaStreams(peerJS, );
+  // const remotePeerMediaConnects = useExchangeMediaStreams(peerJS, remotePeerIds?.payload || [], localStream);
+  // console.log('%c [remotePeerMediaConnects] ', 'background: #000; color: #fff;', remotePeerMediaConnects);
+  React.useEffect(function exchangeStreams() {
+    console.log('[remotePeerIds]', remotePeerIds);
+    if (remotePeerIds === undefined) {
+      return;
+    }
+    console.log('[localStream]', localStream);
+    if (localStream === undefined) {
+      return;
+    }
+    console.log('[remotePeerIds.payload] - [localPeerId]', remotePeerIds.payload, localPeerId);
+    remotePeerIds.payload.forEach((id) => {
+      const call = peerJS.call(id, localStream);
+      console.log('[send local stream]', call);
+      call.on('stream', (stream: MediaStream) => {
+        console.log('%c [stream, call] ', 'background: #222; color: #bada55', stream, call);
+      });
+    });
+
+
+    peerJS.on('call', (call: PeerJSMediaConnect) => {
+      console.log('[get remote stream]', call);
+      call.answer(localStream);
+      call.on('stream', (stream: MediaStream) => {
+        console.log('[got remote stream]', stream);
+      });
+    });
+  }, [ remotePeerIds ]);
 
   return (
     <div className="page">
