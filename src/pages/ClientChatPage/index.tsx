@@ -31,8 +31,18 @@ export const ClientChatPage: React.FC< IClientChatPageProps > = () => {
     console.log('[remotePeerIds.payload] - [localPeerId]', remotePeerIds.payload, localPeerId);
     remotePeerIds.payload.forEach((id) => {
       const call = peerJS.call(id, localStream);
+      console.log('[send local stream]', call);
       call.on('stream', (stream: MediaStream) => {
         console.log('%c [stream, call] ', 'background: #222; color: #bada55', stream, call);
+      });
+    });
+
+
+    peerJS.on('call', (call) => {
+      console.log('[get remote stream]', call);
+      call.answer(localStream);
+      call.on('stream', (stream) => {
+        console.log('[got remote stream]', stream);
       });
     });
   }, [ remotePeerIds ]);
