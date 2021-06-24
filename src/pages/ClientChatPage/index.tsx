@@ -13,6 +13,7 @@ export const ClientChatPage: React.FC< IClientChatPageProps > = () => {
   const remoteRootMediaConnect = useExchangeMediaStreams(peerJS, rootPeerId, localStream);
 
   const remotePeerIds = useRemotePeerData(peerJS);
+  console.log('%c [client] ids - ', 'background: #222; color: #bada55', remotePeerIds);
   // TODO: exchange data with other clients
   // const remotePeerMediaConnects = useExchangeMediaStreams(peerJS, );
 
