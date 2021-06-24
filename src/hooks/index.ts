@@ -106,24 +106,40 @@ export function useReceiveConnection(peerJS: PeerJS) {
   })
 }
 
-export function useExchangeMediaStreams(peerJS: PeerJS, peerId: string, stream: MediaStream | undefined) {
-  const [ remoteMediaConnect, setRemoteMediaConnect ] = React.useState< RemoteMediaConnect >();
+export function useExchangeMediaStreams(peerJS: PeerJS, peerId: string[] | string, stream: MediaStream | undefined) {
+  const [ remoteMediaConnects, setRemoteMediaConnects ] = React.useState< RemoteMediaConnect[] >([]);
 
   React.useEffect(function exchangeStreams() {
     if (stream === undefined) return;
-    /* Обработчик onstream вызывается дважды.
+    if (Array.isArray(peerId)) {
+      peerId.forEach((id) => {
+      /* Обработчик onstream вызывается дважды.
+        После первого вызова стэйт не успевает обновиться и стрим добавляется дважды.
+        Чтобы этого не была введена savedStreamsIds */
+        const savedStreamsIds: string[] = [];
+        const connect = peerJS.call(id, stream);
+        connect.on('stream', (stream: MediaStream) => {
+          if (savedStreamsIds.includes(stream.id)) return;
+          setRemoteMediaConnects((prevState) => [...prevState, { connect, stream }]);
+          savedStreamsIds.push(stream.id);
+        });
+      });
+    } else {
+      /* Обработчик onstream вызывается дважды.
       После первого вызова стэйт не успевает обновиться и стрим добавляется дважды.
       Чтобы этого не была введена savedStreamsIds */
-    const savedStreamsIds: string[] = [];
-    const connect = peerJS.call(peerId, stream);
-    connect.on('stream', (stream: MediaStream) => {
-      if (savedStreamsIds.includes(stream.id)) return;
-      setRemoteMediaConnect({ connect, stream });
-      savedStreamsIds.push(stream.id);
-    });
+      const savedStreamsIds: string[] = [];
+      const connect = peerJS.call(peerId, stream);
+      connect.on('stream', (stream: MediaStream) => {
+        if (savedStreamsIds.includes(stream.id)) return;
+        // setRemoteMediaConnect({ connect, stream });
+          setRemoteMediaConnects((prevState) => [...prevState, { connect, stream }]);
+          savedStreamsIds.push(stream.id);
+      });
+    }
   }, [ peerId, stream ]);
 
-  return remoteMediaConnect;
+  return remoteMediaConnects;
 }
 
 export function usePeerId(peerJS: PeerJS) {
