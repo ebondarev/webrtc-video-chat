@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebRTC</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1 class="peer-id"></h1>
+
+  <!-- Step one -->
+  <div class="choose-type">
+    <div class="create-root">
+      <button class="create-root__btn">Create Root</button>
+    </div>
+
+    <div class="call-to">
+      <input type="text" name="call-to__input" id="call-to__input" class="call-to__input">
+      <button class="call-to__btn">Call</button>
+    </div>
+  </div>
+
+  <!-- Step two -->
+  <div class="video-messanger-container video-messanger-container_hidden">
+    <h2 class="client-type"></h2>
+    <section class="video-container">
+      <div class="users-video"></div>
+      <div class="main-video">
+        <video class="main-video__player" controls src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"></video>
+      </div>
+    </section>
+    <aside class="aside">
+      <div class="chat">
+        <div class="chat-info">
+          <div class="chat-info__title">Party Chat</div>
+          <div class="chat-info__participants"><span class="chat-info__counter"></span> Participants</div>
+        </div>
+        <div class="chat-messages"></div>
+        <div class="chat-textarea">
+          <textarea class="chat-textarea__input-area"></textarea>
+        </div>
+      </div>
+    </aside>
+    <footer class="footer"></footer>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js" integrity="sha512-UNM1njAgOFUa74Z0bADwAq8gbTcqZC8Ej4xPSzpnh0l6KMevwvkBvbldF9uR++qKeJ+MOZHRjV1HZjoRvjDfNQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.3.2/peerjs.min.js" referrerpolicy="no-referrer"></script>
+  <!-- <script src="peerjs.min.js"></script> -->
+  <script src="main.js"></script>
+</body>
+</html>

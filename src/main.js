@@ -38,6 +38,36 @@ window.addEventListener('DOMContentLoaded', () => {
     ]
   };
 
+  const messages = (() => {
+    const _subscribers = [];
+    const _messages = [
+      /* { id: string; type: 'deleted' | 'base' | 'joined'; text: string; author: { name: string; avatar: string; } } */
+      // {id: '0', type: 'deleted', text: 'Message deleted', author: {name: '', avatar: ''}},
+      // {id: '1', type: 'base', text: 'How is everyone', author: {name: 'errorjus', avatar: 'https://cdn.iconscout.com/icon/free/png-256/avatar-366-456318.png'}},
+      // {id: '2', type: 'joined', text: 'ellastill joined the party', author: {name: 'ellastill', avatar: 'https://cdn.iconscout.com/icon/free/png-256/avatar-366-456318.png'}},
+    ];
+    return {
+      add(message) {
+        _messages.push(message);
+        this.notify();
+      },
+      get() {
+        return [ ..._messages ];
+      },
+      subscribe(fn) {
+        _subscribers.push(fn);
+      },
+      notify() {
+        _subscribers.forEach((fn) => fn(this.get().slice(-1)[0]));
+      },
+    };
+  })();
+
+  const user = {
+    name: 'Some name 🐱‍👤',
+    avatar: 'https://cdn.iconscout.com/icon/free/png-256/avatar-366-456318.png',
+  };
+
   const peer = new Peer({ config: peerConfig, debug: 1 });
 
   peer.on('open', function fetchPeerId(id) {
@@ -73,6 +103,8 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     renderVideoStream(localStream);
+
+    initChat(messages, document.querySelector('.chat-messages'));
   });
 
 
@@ -120,11 +152,31 @@ window.addEventListener('DOMContentLoaded', () => {
         renderVideoStream(stream);
       });
     });
+
+    initChat(messages, document.querySelector('.chat-messages'));
   });
 
 
 
-  /* ***************** HELPERS ***************** */
+  /* ***************** FUNCTIONS ***************** */
+
+  function initChat(messages, container) {
+    messages.get().forEach((msg) => renderMessage(msg, container));
+    document.querySelector('.chat-textarea__input-area').addEventListener('keydown', (event) => {
+      if ((event.code.toLowerCase() === 'enter') && (event.shiftKey === false)) {
+        event.preventDefault();
+        const message = {
+          id: uuid.v4(),
+          type: 'base',
+          text: event.target.value.trim(),
+          author: user,
+        };
+        messages.add(message);
+        renderMessage(message, document.querySelector('.chat-messages'));
+        event.target.value = '';
+      }
+    });
+  }
 
   async function getLocalMediaStream() {
     const constraints = {
@@ -148,5 +200,56 @@ window.addEventListener('DOMContentLoaded', () => {
     videoElement.onloadedmetadata = () => {
       videoElement.play();
     }
+  }
+
+  function renderMessage(message, container) {
+    const templates = {
+      deleted(message) {
+        return `<div class="chat-messages__message chat-messages__message_deleted" data-id="${htmlEscape(message.id)}">
+            ${this._text(htmlEscape(message.text))}
+          </div>`;
+      },
+      base(message) {
+        return `<div class="chat-messages__message" data-id="${htmlEscape(message.id)}">
+          ${this._avatar(htmlEscape(message.author.avatar))}
+          <div class="chat-messages__name">${htmlEscape(message.author.name)}</div>
+          ${this._text(htmlEscape(message.text))}
+        </div>`
+      },
+      joined(message) {
+        return `<div class="chat-messages__message chat-message__message_joined" data-id="${htmlEscape(message.id)}">
+          ${this._avatar(htmlEscape(message.author.avatar))}
+          ${this._text(htmlEscape(message.text))}
+        </div>`
+      },
+      _avatar(url) {
+        return `<div class="avatar"><img src="${url}" alt=""></div>`
+      },
+      _text(text) {
+        return `<div class="chat-message__text">${text}</div>`
+      },
+    };
+    container.insertAdjacentHTML('beforeend', templates[message.type](message));
+  }
+
+  function htmlEscape(strings, ...values) {
+    // https://github.com/sindresorhus/escape-goat/blob/main/index.js
+    const _htmlEscape = string => string
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    if (typeof strings === 'string') {
+      return _htmlEscape(strings);
+    }
+
+    let output = strings[0];
+    for (const [index, value] of values.entries()) {
+      output = output + _htmlEscape(String(value)) + strings[index + 1];
+    }
+
+    return output;
   }
 });
