@@ -1,0 +1,120 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+
+body {
+  background-color: #000;
+  color: #fff;
+  font-family: 'Roboto', sans-serif;
+}
+
+.video-messanger-container {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  grid-template-rows: auto;
+  grid-template-areas:
+    "client-type client-type"
+    "video-container aside"
+    "footer footer";
+  gap: 10px 20px;
+}
+
+.video-messanger-container_hidden {
+  display: none;
+}
+
+.client-type {
+  grid-area: client-type;
+}
+
+.video-container {
+  grid-area: video-container;
+}
+
+.aside {
+  grid-area: aside;
+  display: flex;
+}
+
+.chat {
+  background-color: #353744;
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: 30px 1fr 55px;
+  border-radius: 3px;
+}
+
+.chat-info {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.footer {
+  grid-area: footer;
+}
+
+.main-video__player {
+  width: 100%;
+}
+
+.chat-textarea__input-area {
+  width: 100%;
+  resize: none;
+  box-sizing: border-box;
+  background-color: rgba(255,255,255,0.3);
+  border: none;
+  border-radius: 3px;
+  color: #fff;
+  padding: 5px 5px 0;
+}
+
+.avatar {
+  grid-area: avatar;
+}
+
+.chat-messages__name {
+  grid-area: chat-messages__name;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: #ccc;
+}
+
+.chat-message__text {
+  grid-area: chat-message__text;
+}
+
+.avatar img {
+  max-width: 100%;
+}
+
+.chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.chat-messages__message {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  grid-template-rows: auto;
+  grid-template-areas:
+    "avatar chat-messages__name"
+    "avatar chat-message__text";
+  gap: 5px 10px;
+}
+
+.chat-messages__message_deleted {
+  grid-template-areas: "chat-message__text chat-message__text";
+  color: #ccc;
+}
+
+.chat-message__message_joined {
+  grid-template-areas: "avatar chat-message__text";
+}
+
+.chat-message__message_joined .chat-message__text {
+  color: #ccc;
+}

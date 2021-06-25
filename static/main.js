@@ -47,7 +47,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // Create Root
   document.querySelector('.create-root__btn').addEventListener('click', async () => {
     document.querySelector('.choose-type').style.display = 'none';
-    document.querySelector('.chat-page').style.display = 'block';
+    document.querySelector('.video-messanger-container').classList.remove('video-messanger-container_hidden');
     document.querySelector('.client-type').innerText = 'Root';
 
     const localStream = await getLocalMediaStream();
@@ -79,7 +79,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // Create Client
   document.querySelector('.call-to__btn').addEventListener('click', async () => {
     document.querySelector('.choose-type').style.display = 'none';
-    document.querySelector('.chat-page').style.display = 'block';
+    document.querySelector('.video-messanger-container').classList.remove('video-messanger-container_hidden');
     document.querySelector('.client-type').innerText = 'Client';
 
     const localStream = await getLocalMediaStream();
@@ -137,7 +137,6 @@ window.addEventListener('DOMContentLoaded', () => {
     };
     return await navigator.mediaDevices.getUserMedia(constraints);
   }
-
 
   function renderVideoStream(stream) {
     const isVideoAdded = Boolean(document.querySelector(`[data-stream-id="${stream.id}"]`));
