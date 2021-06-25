@@ -44,8 +44,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   interface Messages {
     add: (message: any) => void;
-    get: () => any[];
-    subscribe: (fn: () => void) => void;
+    list: () => any[];
+    subscribe: (fn: (message: Message) => void) => void;
     notify: () => void;
   }
 
@@ -67,20 +67,21 @@ window.addEventListener('DOMContentLoaded', () => {
         _messages.push(message);
         this.notify();
       },
-      get() {
+      list() {
         return [ ..._messages ];
       },
       subscribe(fn: (message: Message) => unknown ) {
         _subscribers.push(fn);
       },
       notify() {
-        _subscribers.forEach((fn) => fn(this.get().slice(-1)[0]));
+        _subscribers.forEach((fn) => fn(this.list().slice(-1)[0]));
       },
     };
   })();
 
   const user = {
-    name: 'Some name 🐱‍👤',
+    // Эмоджи ломают сериализацию сообщения
+    name: 'Some name',
     avatar: 'https://cdn.iconscout.com/icon/free/png-256/avatar-366-456318.png',
   };
 
@@ -116,6 +117,21 @@ window.addEventListener('DOMContentLoaded', () => {
           });
         }
       });
+      {// Отправляю клиенту информицию о сообщениях
+        const connectToClient = peer.connect(clientCall.peer);
+        connectToClient.on('open', function handleConnectToClient() {
+          connectToClient.send({type: 'messages', payload: messages.list()});
+        });
+        messages.subscribe((message) => {
+          connectToClient.send({
+            type: 'message',
+            payload: {
+              position: messages.list().length,
+              message
+            }
+          });
+        });
+      }
     });
 
     renderVideoStream(localStream);
@@ -152,6 +168,12 @@ window.addEventListener('DOMContentLoaded', () => {
               connectedClients.push(id);
               peer.call(id, localStream);
             });
+          } else if (data.type === 'messages') {
+            data.payload.forEach((message: Message) => {
+              renderMessage(message, document.querySelector('.chat-messages'));
+            });
+          } else if (data.type === 'message') {
+            renderMessage(data.payload.message, document.querySelector('.chat-messages'));
           }
         });
       });
@@ -178,7 +200,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function initChat(messages: Messages, container: HTMLElement) {
     // debugger;
-    messages.get().forEach((msg) => renderMessage(msg, container));
+    messages.list().forEach((msg) => renderMessage(msg, container));
     document.querySelector('.chat-textarea__input-area').addEventListener('keydown', (event: KeyboardEvent) => {
       if ((event.code.toLowerCase() === 'enter') && (event.shiftKey === false)) {
         event.preventDefault();
