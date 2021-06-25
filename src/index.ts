@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import 'normalize.css';
 import './style.css';
 
@@ -182,7 +183,7 @@ window.addEventListener('DOMContentLoaded', () => {
       if ((event.code.toLowerCase() === 'enter') && (event.shiftKey === false)) {
         event.preventDefault();
         const message: Message = {
-          id: (window as any).uuid.v4(),
+          id: uuidv4(),
           type: 'base',
           text: (event.target as HTMLTextAreaElement).value.trim(),
           author: user,

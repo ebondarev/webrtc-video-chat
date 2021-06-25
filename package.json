@@ -30,6 +30,7 @@
     "workbox-webpack-plugin": "^6.1.5"
   },
   "dependencies": {
-    "normalize.css": "^8.0.1"
+    "normalize.css": "^8.0.1",
+    "uuid": "^8.3.2"
   }
 }
