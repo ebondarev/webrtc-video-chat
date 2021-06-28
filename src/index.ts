@@ -101,6 +101,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const streamingClientIds = new Set<string>();
     peer.on('call', function handleClientCall(clientCall: any) {
+      changeCounterParticipants(1);
       clientCall.answer(localStream);
       clientCall.on('stream', function handleClientStream(clientStream: MediaStream) {
         renderVideoStream(clientStream);
@@ -168,6 +169,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const idForConnect = (document.querySelector('.call-to__input') as HTMLInputElement).value;
     const callToRoot = peer.call(idForConnect, localStream);
+    changeCounterParticipants(1);
     callToRoot.on('stream', function handleRootStream(rootStream: MediaStream) {
       renderVideoStream(rootStream);
     });
@@ -183,6 +185,7 @@ window.addEventListener('DOMContentLoaded', () => {
             // Установить соединение с клиентами из списка
             data.payload.forEach((id: string) => {
               if (connectedClients.includes(id)) return;
+              changeCounterParticipants(1);
               connectedClients.push(id);
               peer.call(id, localStream);
             });
@@ -223,6 +226,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
   /* ***************** FUNCTIONS ***************** */
+
+  function changeCounterParticipants(change: number) {
+    const counterElement = document.querySelector('.chat-info__counter') as HTMLElement;
+    const currentValue = parseInt(counterElement.innerText.trim(), 10);
+    counterElement.innerText = String(currentValue + change);
+  }
 
   function renderMainVideo(container: HTMLElement, options: {src: string; className: string;}) {
     const videoElement = document.createElement('video');
