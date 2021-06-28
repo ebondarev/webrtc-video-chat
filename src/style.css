@@ -6,6 +6,22 @@ body {
   font-family: 'Roboto', sans-serif;
 }
 
+.button {
+  background-color: #1890ff;
+  border: none;
+  border-radius: 3px;
+  padding: 4px 15px;
+  color: #fff;
+  cursor: pointer;
+}
+.button:hover,
+.button:focus {
+  background-color: #40a9ff;
+}
+.button:active {
+  background-color: #096dd9;
+}
+
 .video-messanger-container {
   display: grid;
   grid-template-columns: 3fr 1fr;
@@ -139,4 +155,29 @@ body {
 
 .chat-info__participants {
   color: #ccc;
+}
+
+.call-to {
+  display: flex;
+}
+
+.call-to__label {
+  background-color: #fff;
+  display: inline-flex;
+  justify-content: stretch;
+  border-radius: 3px 0 0 3px;
+}
+
+.call-to__input {
+  background-color: transparent;
+  border: none;
+  outline: none;
+}
+
+.call-to__btn {
+  border-radius: 0 3px 3px 0;
+}
+
+.create-root {
+  margin-bottom: 10px;
 }
