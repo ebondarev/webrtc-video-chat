@@ -137,6 +137,14 @@ window.addEventListener('DOMContentLoaded', () => {
     renderVideoStream(localStream);
 
     initChat(messages, document.querySelector('.chat-messages'));
+
+    renderMainVideo(
+      document.querySelector('.main-video'),
+      {
+        src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+        className: 'main-video__player',
+      }
+    );
   });
 
 
@@ -192,11 +200,28 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     initChat(messages, document.querySelector('.chat-messages'));
+
+    renderMainVideo(
+      document.querySelector('.main-video'),
+      {
+        src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+        className: 'main-video__player',
+      }
+    );
   });
 
 
 
   /* ***************** FUNCTIONS ***************** */
+
+  function renderMainVideo(container: HTMLElement, options: {src: string; className: string;}) {
+    const videoElement = document.createElement('video');
+    videoElement.controls = true;
+    videoElement.classList.add(options.className);
+    videoElement.src = options.src;
+    container.appendChild(videoElement);
+    videoElement.play();
+  }
 
   function initChat(messages: Messages, container: HTMLElement) {
     // debugger;
