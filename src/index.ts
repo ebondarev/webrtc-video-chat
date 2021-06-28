@@ -134,9 +134,19 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     });
 
+    // Listen messages from clients
+    peer.on('connection', (connect: any) => {
+      connect.on('data', (data: any) => {
+        if (data.type === 'message') {
+          messages.add(data.payload);
+          renderMessage(data.payload, document.querySelector('.chat-messages'));
+        }
+      });
+    });
+
     renderVideoStream(localStream);
 
-    initChat(messages, document.querySelector('.chat-messages'));
+    initChat(messages, document.querySelector('.chat-messages'), 'root');
 
     renderMainVideo(
       document.querySelector('.main-video'),
@@ -199,7 +209,7 @@ window.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    initChat(messages, document.querySelector('.chat-messages'));
+    initChat(messages, document.querySelector('.chat-messages'), 'client', idForConnect);
 
     renderMainVideo(
       document.querySelector('.main-video'),
@@ -223,8 +233,7 @@ window.addEventListener('DOMContentLoaded', () => {
     videoElement.play();
   }
 
-  function initChat(messages: Messages, container: HTMLElement) {
-    // debugger;
+  function initChat(messages: Messages, container: HTMLElement, type: 'root' | 'client', rootPeerId?: string) {
     messages.list().forEach((msg) => renderMessage(msg, container));
     document.querySelector('.chat-textarea__input-area').addEventListener('keydown', (event: KeyboardEvent) => {
       if ((event.code.toLowerCase() === 'enter') && (event.shiftKey === false)) {
@@ -236,7 +245,15 @@ window.addEventListener('DOMContentLoaded', () => {
           author: user,
         };
         messages.add(message);
-        renderMessage(message, document.querySelector('.chat-messages'));
+        if (type === 'root') {
+          renderMessage(message, document.querySelector('.chat-messages'));
+        } else if ((type === 'client') && rootPeerId) {
+          // Send message to root
+          const connectToRoot = peer.connect(rootPeerId);
+          connectToRoot.on('open', () => {
+            connectToRoot.send({type: 'message', payload: message});
+          });
+        }
         (event.target as HTMLTextAreaElement).value = '';
       }
     });
