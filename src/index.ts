@@ -244,8 +244,14 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function initChat(messages: Messages, container: HTMLElement, type: 'root' | 'client', rootPeerId?: string) {
     messages.list().forEach((msg) => renderMessage(msg, container));
-    document.querySelector('.chat-textarea__input-area').addEventListener('keydown', (event: KeyboardEvent) => {
-      if ((event.code.toLowerCase() === 'enter') && (event.shiftKey === false)) {
+    document.querySelector('.chat-textarea__input-area').addEventListener('keyup', (event: KeyboardEvent) => {
+      const isDesktop = document.body.clientWidth >= 1280;
+      const isEnterWithoutShift = (event.code.toLowerCase() === 'enter') && (event.shiftKey === false);
+      const isLastPressedEnter = ((event.target as HTMLTextAreaElement).value.slice(-1) === '\n');
+      if (
+        (isDesktop && isEnterWithoutShift) ||
+        ((isDesktop === false) && isLastPressedEnter)
+      ) {
         event.preventDefault();
         const message: Message = {
           id: uuidv4(),
