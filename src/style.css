@@ -4,6 +4,7 @@ body {
   background-color: #000;
   color: #fff;
   font-family: 'Roboto', sans-serif;
+  min-height: 100vh;
 }
 
 .button {
@@ -199,4 +200,16 @@ body {
 
 .create-root {
   margin-bottom: 10px;
+}
+
+.users-video {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  column-gap: 20px;
+  margin-bottom: 20px;
+}
+
+.users-video__video {
+  max-width: 100%;
+  border-radius: 10px;
 }
