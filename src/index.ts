@@ -92,9 +92,9 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   // Create Root
-  document.querySelector('.create-root__btn').addEventListener('click', async () => {
+  document.querySelector('.create-root__btn')?.addEventListener('click', async () => {
     (document.querySelector('.choose-type') as HTMLElement).style.display = 'none';
-    document.querySelector('.video-messanger-container').classList.remove('video-messanger-container_hidden');
+    (document.querySelector('.video-messanger-container') as HTMLElement).classList.remove('video-messanger-container_hidden');
     (document.querySelector('.client-type') as HTMLElement).innerText = 'Root';
 
     const localStream = await getLocalMediaStream();
@@ -140,17 +140,17 @@ window.addEventListener('DOMContentLoaded', () => {
       connect.on('data', (data: any) => {
         if (data.type === 'message') {
           messages.add(data.payload);
-          renderMessage(data.payload, document.querySelector('.chat-messages'));
+          renderMessage(data.payload, document.querySelector('.chat-messages') as HTMLElement);
         }
       });
     });
 
     renderVideoStream(localStream);
 
-    initChat(messages, document.querySelector('.chat-messages'), 'root');
+    initChat(messages, document.querySelector('.chat-messages') as HTMLElement, 'root');
 
     renderMainVideo(
-      document.querySelector('.main-video'),
+      document.querySelector('.main-video') as HTMLElement,
       {
         src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
         className: 'main-video__player',
@@ -160,9 +160,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
   // Create Client
-  document.querySelector('.call-to__btn').addEventListener('click', async () => {
+  document.querySelector('.call-to__btn')?.addEventListener('click', async () => {
     (document.querySelector('.choose-type') as HTMLElement).style.display = 'none';
-    document.querySelector('.video-messanger-container').classList.remove('video-messanger-container_hidden');
+    (document.querySelector('.video-messanger-container') as HTMLElement).classList.remove('video-messanger-container_hidden');
     (document.querySelector('.client-type') as HTMLElement).innerText = 'Client';
 
     const localStream = await getLocalMediaStream();
@@ -191,10 +191,10 @@ window.addEventListener('DOMContentLoaded', () => {
             });
           } else if (data.type === 'messages') {
             data.payload.forEach((message: Message) => {
-              renderMessage(message, document.querySelector('.chat-messages'));
+              renderMessage(message, document.querySelector('.chat-messages') as HTMLElement);
             });
           } else if (data.type === 'message') {
-            renderMessage(data.payload.message, document.querySelector('.chat-messages'));
+            renderMessage(data.payload.message, document.querySelector('.chat-messages') as HTMLElement);
           }
         });
       });
@@ -212,10 +212,10 @@ window.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    initChat(messages, document.querySelector('.chat-messages'), 'client', idForConnect);
+    initChat(messages, document.querySelector('.chat-messages') as HTMLElement, 'client', idForConnect);
 
     renderMainVideo(
-      document.querySelector('.main-video'),
+      document.querySelector('.main-video') as HTMLElement,
       {
         src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
         className: 'main-video__player',
@@ -244,7 +244,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function initChat(messages: Messages, container: HTMLElement, type: 'root' | 'client', rootPeerId?: string) {
     messages.list().forEach((msg) => renderMessage(msg, container));
-    document.querySelector('.chat-textarea__input-area').addEventListener('keyup', (event: KeyboardEvent) => {
+    document.querySelector('.chat-textarea__input-area')?.addEventListener('keyup', (e: Event) => {
+      const event = e as KeyboardEvent;
       const isDesktop = document.body.clientWidth >= 1280;
       const isEnterWithoutShift = (event.code.toLowerCase() === 'enter') && (event.shiftKey === false);
       const isLastPressedEnter = ((event.target as HTMLTextAreaElement).value.slice(-1) === '\n');
@@ -261,7 +262,7 @@ window.addEventListener('DOMContentLoaded', () => {
         };
         messages.add(message);
         if (type === 'root') {
-          renderMessage(message, document.querySelector('.chat-messages'));
+          renderMessage(message, document.querySelector('.chat-messages') as HTMLElement);
         } else if ((type === 'client') && rootPeerId) {
           // Send message to root
           const connectToRoot = peer.connect(rootPeerId);
@@ -291,8 +292,9 @@ window.addEventListener('DOMContentLoaded', () => {
     if (isVideoAdded) return;
     const videoElement = document.createElement('video');
     videoElement.srcObject = stream;
+    videoElement.classList.add('users-video__video');
     videoElement.dataset.streamId = stream.id;
-    document.querySelector('.users-video').appendChild(videoElement);
+    document.querySelector('.users-video')?.appendChild(videoElement);
     videoElement.onloadedmetadata = () => {
       videoElement.play();
     }
