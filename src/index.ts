@@ -82,12 +82,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const user = {
     // Эмоджи ломают сериализацию сообщения
-    name: 'Some name',
+    name: 'Some name 🤩',
     avatar: 'https://cdn.iconscout.com/icon/free/png-256/avatar-366-456318.png',
   };
 
   const peer = new (window as any).Peer({ config: peerConfig, debug: 1 });
-
   peer.on('open', function fetchPeerId(id: string) {
     (document.querySelector('.peer-id') as HTMLElement).innerText = id;
   });
@@ -120,7 +119,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }
       });
       {// Отправляю клиенту информицию о сообщениях
-        const connectToClient = peer.connect(clientCall.peer);
+        const connectToClient = peer.connect(clientCall.peer, {serialization: 'json'});
         connectToClient.on('open', function handleConnectToClient() {
           connectToClient.send({type: 'messages', payload: messages.list()});
         });
@@ -129,7 +128,7 @@ window.addEventListener('DOMContentLoaded', () => {
             type: 'message',
             payload: {
               position: messages.list().length,
-              message
+              message,
             }
           });
         });
@@ -266,7 +265,7 @@ window.addEventListener('DOMContentLoaded', () => {
           renderMessage(message, document.querySelector('.chat-messages') as HTMLElement);
         } else if ((type === 'client') && rootPeerId) {
           // Send message to root
-          const connectToRoot = peer.connect(rootPeerId);
+          const connectToRoot = peer.connect(rootPeerId, {serialization: 'json'});
           connectToRoot.on('open', () => {
             connectToRoot.send({type: 'message', payload: message});
           });
