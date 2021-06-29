@@ -4,7 +4,7 @@ import 'normalize.css';
 import './style.css';
 
 window.addEventListener('DOMContentLoaded', () => {
-  const peerConfig = {
+  /* const peerConfig = {
     'iceServers': [
       { url: 'stun:stun01.sipphone.com' },
       { url: 'stun:stun.ekiga.net' },
@@ -41,7 +41,7 @@ window.addEventListener('DOMContentLoaded', () => {
         username: '28224511:1379330808'
       }
     ]
-  };
+  }; */
 
   interface Messages {
     add: (message: any) => void;
@@ -86,7 +86,7 @@ window.addEventListener('DOMContentLoaded', () => {
     avatar: 'https://cdn.iconscout.com/icon/free/png-256/avatar-366-456318.png',
   };
 
-  const peer = new (window as any).Peer({ config: peerConfig, debug: 1 });
+  const peer = new (window as any).Peer({ /* config: peerConfig, */ debug: 1 });
   peer.on('open', function fetchPeerId(id: string) {
     (document.querySelector('.peer-id') as HTMLElement).innerText = id;
   });
