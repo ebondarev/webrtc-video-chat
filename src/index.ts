@@ -100,37 +100,32 @@ window.addEventListener('DOMContentLoaded', () => {
     const localStream = await getLocalMediaStream();
 
     peer.on('call', function handleClientCall(clientCall: any) {
-      changeCounterParticipants(1);
+      incrementCounterParticipants(1);
       clientCall.answer(localStream);
       clientCall.on('stream', function handleClientStream(clientStream: MediaStream) {
         renderVideoStream(clientStream);
         // Сообщает клиентам id нового подключённого клиента
         Object.keys(peer.connections).forEach((clientId: string, index, arr) => {
           const listWithoutClientId = arr.filter((id) => id !== clientId);
-          const dataConnection = peer.connections[clientId][1];
+          const dataConnection = peer.connections[clientId].find((connection: any) => connection.metadata.type === 'DataConnection');
           dataConnection.send({type: 'client_ids', payload: listWithoutClientId});
         });
       });
-      {// Отправляю клиенту информицию о сообщениях
-        const connectToClient = peer.connect(clientCall.peer, {serialization: 'json'});
-        connectToClient.on('open', function handleConnectToClient() {
-          connectToClient.send({type: 'messages', payload: messages.list()});
-        });
-        messages.subscribe((message) => {
-          connectToClient.send({
-            type: 'message',
-            payload: {
-              position: messages.list().length,
-              message,
-            }
-          });
-        });
-      }
     });
 
-    // Listen messages from clients
-    peer.on('connection', (connect: any) => {
-      connect.on('data', (data: any) => {
+    /*
+     * Получает коннект от клиентов. Отправляет имеющиеся сообщения.
+     * Подписывается на появление новых сообщений и отправляет их клиенту.
+     */
+    peer.on('connection', (dataConnection: any) => {
+      dataConnection.send({type: 'messages', payload: messages.list()});
+      messages.subscribe((message) => {
+        dataConnection.send({
+          type: 'message',
+          payload: message,
+        });
+      });
+      dataConnection.on('data', (data: any) => {
         if (data.type === 'message') {
           messages.add(data.payload);
           renderMessage(data.payload, document.querySelector('.chat-messages') as HTMLElement);
@@ -160,26 +155,22 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const localStream = await getLocalMediaStream();
 
-    const idForConnect = (document.querySelector('.call-to__input') as HTMLInputElement).value;
-    const callToRoot = peer.call(idForConnect, localStream);
-    changeCounterParticipants(1);
-    callToRoot.on('stream', function handleRootStream(rootStream: MediaStream) {
-      renderVideoStream(rootStream);
-    });
+    const rootPeerId = (document.querySelector('.call-to__input') as HTMLInputElement).value;
 
-    renderVideoStream(localStream);
-
-    // Обрабатывает присылаемые данные
-    const connectedClients: string[] = [];
-    peer.on('connection', (connection: any) => {
-      connection.on('open', () => {
-        connection.on('data', (data: any) => {
+    {
+      /*
+      * Сразу устанавливаю MediaConnection и DataConnection чтобы
+      * со страницы рута было проще отправлять данные, тк сооединения
+      * будут добавлены в peer.connections
+      */
+      const dataConnectToRoot = peer.connect(rootPeerId, {serialization: 'json', metadata: {type: 'DataConnection'}});
+      dataConnectToRoot.on('open', () => {
+        dataConnectToRoot.on('data', (data: any) => {
           if (data.type === 'client_ids') {
-            // Установить соединение с клиентами из списка
+            // Установить соединение с клиентами из пришедшего фида
             data.payload.forEach((id: string) => {
-              if (connectedClients.includes(id)) return;
-              changeCounterParticipants(1);
-              connectedClients.push(id);
+              if (Object.keys(peer.connections).includes(id)) return;
+              incrementCounterParticipants(1);
               peer.call(id, localStream);
             });
           } else if (data.type === 'messages') {
@@ -187,25 +178,33 @@ window.addEventListener('DOMContentLoaded', () => {
               renderMessage(message, document.querySelector('.chat-messages') as HTMLElement);
             });
           } else if (data.type === 'message') {
-            renderMessage(data.payload.message, document.querySelector('.chat-messages') as HTMLElement);
+            renderMessage(data.payload, document.querySelector('.chat-messages') as HTMLElement);
           }
         });
       });
-    });
+
+      const mediaConnectToRoot = peer.call(rootPeerId, localStream, {metadata: {type: 'MediaConnection'}});
+      mediaConnectToRoot.on('stream', function handleRootStream(rootStream: MediaStream) {
+        renderVideoStream(rootStream);
+      });
+    }
+
+    incrementCounterParticipants(1);
+
+    renderVideoStream(localStream);
 
     // Обрабатывает стримы от других клиентов
     const idsOfPlayingClients: string[] = [];
     peer.on('call', (call: any) => {
       if (idsOfPlayingClients.includes(call.peer)) return;
       idsOfPlayingClients.push(call.peer);
-      // peer.call(call.peer, localStream);
       call.answer(localStream);
       call.on('stream', (stream: MediaStream) => {
         renderVideoStream(stream);
       });
     });
 
-    initChat(messages, document.querySelector('.chat-messages') as HTMLElement, 'client', idForConnect);
+    initChat(messages, document.querySelector('.chat-messages') as HTMLElement, 'client', rootPeerId);
 
     renderMainVideo(
       document.querySelector('.main-video') as HTMLElement,
@@ -220,10 +219,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
   /* ***************** FUNCTIONS ***************** */
 
-  function changeCounterParticipants(change: number) {
+  function incrementCounterParticipants(increment: number) {
     const counterElement = document.querySelector('.chat-info__counter') as HTMLElement;
     const currentValue = parseInt(counterElement.innerText.trim(), 10);
-    counterElement.innerText = String(currentValue + change);
+    counterElement.innerText = String(currentValue + increment);
   }
 
   function renderMainVideo(container: HTMLElement, options: {src: string; className: string;}) {
@@ -257,7 +256,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (type === 'root') {
           renderMessage(message, document.querySelector('.chat-messages') as HTMLElement);
         } else if ((type === 'client') && rootPeerId) {
-          // Send message to root
+          // Отправляет сообщение руту
           const connectToRoot = peer.connect(rootPeerId, {serialization: 'json'});
           connectToRoot.on('open', () => {
             connectToRoot.send({type: 'message', payload: message});
