@@ -99,24 +99,17 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const localStream = await getLocalMediaStream();
 
-    const streamingClientIds = new Set<string>();
     peer.on('call', function handleClientCall(clientCall: any) {
       changeCounterParticipants(1);
       clientCall.answer(localStream);
       clientCall.on('stream', function handleClientStream(clientStream: MediaStream) {
         renderVideoStream(clientStream);
-        const streamingClientIdsLengthBeforeAdding = streamingClientIds.size;
-        streamingClientIds.add(clientCall.peer);
-        if ((streamingClientIds.size > 1) && (streamingClientIdsLengthBeforeAdding !== streamingClientIds.size)) {
-          // Проинформировать клиентов об изменении в подключенных клиентах
-          Array.from(streamingClientIds.values()).forEach((clientId, index, arr) => {
-            const listWithoutClientId = arr.filter((id) => id !== clientId);
-            const connection = peer.connect(clientId);
-            connection.on('open', () => {
-              connection.send({type: 'client_ids', payload: listWithoutClientId});
-            });
-          });
-        }
+        // Сообщает клиентам id нового подключённого клиента
+        Object.keys(peer.connections).forEach((clientId: string, index, arr) => {
+          const listWithoutClientId = arr.filter((id) => id !== clientId);
+          const dataConnection = peer.connections[clientId][1];
+          dataConnection.send({type: 'client_ids', payload: listWithoutClientId});
+        });
       });
       {// Отправляю клиенту информицию о сообщениях
         const connectToClient = peer.connect(clientCall.peer, {serialization: 'json'});
