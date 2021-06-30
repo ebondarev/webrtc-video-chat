@@ -107,7 +107,22 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   // Create Root
-  document.querySelector('.create-root__btn')?.addEventListener('click', async () => {
+  document.querySelector('.create-root__btn')?.addEventListener('click', createRoot);
+
+  // Create Client
+  document.querySelector('.call-to__input')?.addEventListener('keydown', (e: Event) => {
+    const event = e as KeyboardEvent;
+    if (event.code?.toLowerCase() !== 'enter') return;
+    event.preventDefault();
+    createClient();
+  });
+  document.querySelector('.call-to__btn')?.addEventListener('click', createClient);
+
+
+
+  /* ***************** FUNCTIONS ***************** */
+
+  async function createRoot() {
     (document.querySelector('.choose-type') as HTMLElement).style.display = 'none';
     (document.querySelector('.video-messanger-container') as HTMLElement).classList.remove('video-messanger-container_hidden');
     (document.querySelector('.client-type') as HTMLElement).innerText = 'Root';
@@ -160,11 +175,9 @@ window.addEventListener('DOMContentLoaded', () => {
         className: 'main-video__player',
       }
     );
-  });
+  }
 
-
-  // Create Client
-  document.querySelector('.call-to__btn')?.addEventListener('click', async () => {
+  async function createClient() {
     (document.querySelector('.choose-type') as HTMLElement).style.display = 'none';
     (document.querySelector('.video-messanger-container') as HTMLElement).classList.remove('video-messanger-container_hidden');
     (document.querySelector('.client-type') as HTMLElement).innerText = 'Client';
@@ -230,11 +243,7 @@ window.addEventListener('DOMContentLoaded', () => {
         className: 'main-video__player',
       }
     );
-  });
-
-
-
-  /* ***************** FUNCTIONS ***************** */
+  }
 
   function applyUserName(user: User, input: HTMLInputElement) {
     const userName = input.value;
