@@ -96,7 +96,8 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   // Popup
-  document.querySelector('.collect-user-data__input').addEventListener('keydown', (event: KeyboardEvent) => {
+  document.querySelector('.collect-user-data__input').addEventListener('keydown', (e: Event) => {
+    const event = e as KeyboardEvent;
     if (event.code?.toLowerCase() !== 'enter') return;
     event.preventDefault();
     applyUserName(user, document.querySelector('.collect-user-data__input') as HTMLInputElement);
@@ -147,7 +148,8 @@ window.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    renderVideoStream(localStream);
+    // Мьют локального стрима чтобы избавиться от эхо
+    renderVideoStream(localStream, {isMuted: true});
 
     initChat(messages, document.querySelector('.chat-messages') as HTMLElement, 'root');
 
@@ -205,7 +207,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
     incrementCounterParticipants(1);
 
-    renderVideoStream(localStream);
+    // Мьют локального стрима чтобы избавиться от эхо
+    renderVideoStream(localStream, {isMuted: true});
 
     // Обрабатывает стримы от других клиентов
     const idsOfPlayingClients: string[] = [];
@@ -289,23 +292,38 @@ window.addEventListener('DOMContentLoaded', () => {
 
   async function getLocalMediaStream() {
     const constraints = {
-      audio: true,
+      // audio: true,
+      audio: {
+        echoCancellation: true,
+      },
       video: {
         width: 320,
         height: 240,
         facingMode: 'user',
+        echoCancellation: true,
       },
     };
     return await navigator.mediaDevices.getUserMedia(constraints);
   }
 
-  function renderVideoStream(stream: MediaStream) {
+  function renderVideoStream(stream: MediaStream, settings?: {isMuted: boolean}) {
     const isVideoAdded = Boolean(document.querySelector(`[data-stream-id="${stream.id}"]`));
     if (isVideoAdded) return;
     const videoElement = document.createElement('video');
     videoElement.srcObject = stream;
     videoElement.classList.add('users-video__video');
     videoElement.dataset.streamId = stream.id;
+    stream.getTracks().forEach(function addEchoCancellation(track) {
+      const constraints = track.getConstraints();
+      if (constraints.echoCancellation) return;
+      track.applyConstraints({
+        ...constraints,
+        echoCancellation: true,
+      });
+    });
+    if (settings?.isMuted) {
+      videoElement.muted = true;
+    }
     document.querySelector('.users-video')?.appendChild(videoElement);
     videoElement.onloadedmetadata = () => {
       videoElement.play();
