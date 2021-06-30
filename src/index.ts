@@ -80,15 +80,29 @@ window.addEventListener('DOMContentLoaded', () => {
     };
   })();
 
-  const user = {
-    // Эмоджи ломают сериализацию сообщения
-    name: 'Some name 🤩',
+  interface User {
+    name: string;
+    avatar: string;
+  }
+
+  const user: User = {
+    name: 'User Name 🤩',
     avatar: 'https://cdn.iconscout.com/icon/free/png-256/avatar-366-456318.png',
   };
 
   const peer = new (window as any).Peer({ /* config: peerConfig, */ debug: 1 });
   peer.on('open', function fetchPeerId(id: string) {
     (document.querySelector('.peer-id') as HTMLElement).innerText = id;
+  });
+
+  // Popup
+  document.querySelector('.collect-user-data__input').addEventListener('keydown', (event: KeyboardEvent) => {
+    if (event.code?.toLowerCase() !== 'enter') return;
+    event.preventDefault();
+    applyUserName(user, document.querySelector('.collect-user-data__input') as HTMLInputElement);
+  });
+  document.querySelector('.collect-user-data__btn').addEventListener('click', () => {
+    applyUserName(user, document.querySelector('.collect-user-data__input') as HTMLInputElement);
   });
 
   // Create Root
@@ -218,6 +232,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
 
   /* ***************** FUNCTIONS ***************** */
+
+  function applyUserName(user: User, input: HTMLInputElement) {
+    const userName = input.value;
+    user.name = userName;
+    document.querySelector('.popup').classList.add('popup_hide');
+  }
 
   function incrementCounterParticipants(increment: number) {
     const counterElement = document.querySelector('.chat-info__counter') as HTMLElement;
