@@ -3,6 +3,119 @@ import './vendor/peerjs.js';
 import 'normalize.css';
 import './style.css';
 
+interface PeerJSConstructor {
+  (id?: string, options?: PeerJSConstructorOptions): PeerJS;
+}
+
+interface PeerJSConstructorOptions {
+  key?: string;
+  host?: string;
+  port?: string;
+  pingInterval?: number;
+  path?: string;
+  secure?: boolean;
+  config?: {
+    iceServers: {
+      urls: string;
+      sdpSemantics: string;
+    }[];
+  }
+  debug?: 0 | 1 | 2 | 3;
+};
+
+type PeerJSOnEvent = 'open' | 'connection' | 'call' | 'close' | 'disconnected' | 'error';
+type PeerJSOnCallback = ((id: string) => void)
+  | ((data: PeerJSDataConnect) => void)
+  | ((media: PeerJSMediaConnect) => void)
+  | ((error: PeerJSError) => void)
+  | (() => void);
+
+interface PeerJS {
+  connect: (id: string, options?: PeerJSConnectOptions) => PeerJSDataConnect;
+  call: (id: string, stream: MediaStream, options?: PeerJSCallOptions) => PeerJSMediaConnect;
+  on: (event: PeerJSOnEvent, callback: PeerJSOnCallback) => void;
+  disconnect: () => void;
+  reconnect: () => void;
+  destroy: () => void;
+  id: string;
+  connections: PeerJSConnections;
+  disconnected: boolean;
+  destroyed: boolean;
+}
+
+interface PeerJSConnections {
+  [key: string]: PeerJSConnect[];
+}
+
+interface PeerJSConnect {
+  connectionId: string;
+  label: string;
+  metadata: unknown;
+  options: unknown;
+  parse: () => void;
+  peer: string;
+  peerConnection: RTCPeerConnection;
+  provider: unknown;
+  reliable: boolean;
+  serialization: 'binary' | 'binary-utf8' | 'json' | 'none';
+  stringify: () => void;
+  bufferSize: number;
+  close: () => void;
+  constructor: () => void;
+  dataChannel: RTCDataChannel;
+  handleMessage: (message: unknown) => unknown;
+  initialize: (dc: unknown) => unknown;
+  type: 'data' | 'media';
+}
+
+interface PeerJSError {
+  type: 'browser-incompatible' | 'disconnected' | 'invalid-id' | 'invalid-key' | 'network' | 'peer-unavailable' | 'ssl-unavailable' | 'server-error' | 'socket-error' | 'socket-closed' | 'unavailable-id' | 'webrtc';
+}
+
+interface PeerJSCallOptions {
+  metadata?: unknown;
+  sdpTransform?: () => void;
+}
+
+interface PeerJSConnectOptions {
+  label?: string;
+  metadata?: unknown;
+  serialization?: 'binary' | 'binary-utf8' | 'json' | 'none';
+  reliable?: boolean;
+}
+
+interface PeerJSDataConnect {
+  send: (data: unknown) => void;
+  close: () => void;
+  on: (
+    event: 'data' | 'open' | 'close' | 'error',
+    callback: ((data: unknown) => void) | ((error: unknown) => void) | (() => void)
+  ) => void;
+  dataChannel: RTCDataChannel;
+  label: string;
+  metadata: unknown;
+  open: boolean;
+  peerConnectin: RTCPeerConnection;
+  peer: string;
+  reliable: boolean;
+  serialization: 'binary' | 'binary-utf8' | 'json' | 'none';
+  type: 'data';
+  bufferSize: number;
+}
+
+interface PeerJSMediaConnect {
+  answer: (stream?: MediaStream, options?: { sdpTransform: () => void }) => void;
+  close: () => void;
+  on: (
+    event: 'stream' | 'close' | 'error',
+    callback: ((stream: MediaStream) => void) | (() => void) | ((error: unknown) => void)
+  ) => void;
+  open: boolean;
+  metadata: unknown;
+  peer: string;
+  type: 'media';
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   /* const peerConfig = {
     'iceServers': [
@@ -90,10 +203,16 @@ window.addEventListener('DOMContentLoaded', () => {
     avatar: 'https://cdn.iconscout.com/icon/free/png-256/avatar-366-456318.png',
   };
 
-  const peer = new (window as any).Peer({ /* config: peerConfig, */ debug: 1 });
+  const peerOptions: PeerJSConstructorOptions = { /* config: peerConfig, */ debug: 1 };
+
+  const peer: PeerJS  = new (window as any).Peer(peerOptions);
   peer.on('open', function fetchPeerId(id: string) {
     (document.querySelector('.peer-id') as HTMLElement).innerText = id;
   });
+
+  setInterval(() => {
+    console.log('[peer.connections]', peer.connections);
+  }, 3000);
 
   // Popup
   document.querySelector('.collect-user-data__input').addEventListener('keydown', (e: Event) => {
@@ -129,7 +248,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const localStream = await getLocalMediaStream();
 
-    peer.on('call', function handleClientCall(clientCall: any) {
+    peer.on('call', function handleClientCall(clientCall: PeerJSMediaConnect) {
       incrementCounterParticipants(1);
       clientCall.answer(localStream);
       clientCall.on('stream', function handleClientStream(clientStream: MediaStream) {
@@ -147,7 +266,7 @@ window.addEventListener('DOMContentLoaded', () => {
      * Получает коннект от клиентов. Отправляет имеющиеся сообщения.
      * Подписывается на появление новых сообщений и отправляет их клиенту.
      */
-    peer.on('connection', (dataConnection: any) => {
+    peer.on('connection', (dataConnection: PeerJSDataConnect) => {
       dataConnection.send({type: 'messages', payload: messages.list()});
       messages.subscribe((message) => {
         dataConnection.send({
@@ -253,7 +372,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Обрабатывает стримы от других клиентов
     const idsOfPlayingClients: string[] = [];
-    peer.on('call', (call: any) => {
+    peer.on('call', (call: PeerJSMediaConnect) => {
       if (idsOfPlayingClients.includes(call.peer)) return;
       idsOfPlayingClients.push(call.peer);
       call.answer(localStream);
@@ -291,7 +410,7 @@ window.addEventListener('DOMContentLoaded', () => {
       .forEach((dataConnection) => {
         if (
           (peerType === 'Root')
-          || ((peerType === 'Client') && (dataConnection.metadata.peerType === 'Root'))
+          || ((peerType === 'Client') && ((dataConnection.metadata as any).peerType === 'Root'))
         ) {
           // Вместе с seeked передавать играет ли плеер
           dataConnection.send({
@@ -452,7 +571,8 @@ window.addEventListener('DOMContentLoaded', () => {
     return output;
   }
 
-  function getDataConnection(connections: any[]): any {
-    return connections.find((connection: any) => connection.metadata.type === 'DataConnection');
+  function getDataConnection(connections: any[]): PeerJSDataConnect {
+    return connections.find((connection) => (connection.metadata as any).type === 'DataConnection');
   }
+
 });
