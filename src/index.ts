@@ -137,7 +137,7 @@ window.addEventListener('DOMContentLoaded', () => {
         // Сообщает клиентам id нового подключённого клиента
         Object.keys(peer.connections).forEach((clientId: string, index, arr) => {
           const listWithoutClientId = arr.filter((id) => id !== clientId);
-          const dataConnection = peer.connections[clientId].find((connection: any) => connection.metadata.type === 'DataConnection');
+          const dataConnection = getDataConnection(peer.connections[clientId]);
           dataConnection.send({type: 'client_ids', payload: listWithoutClientId});
         });
       });
@@ -168,16 +168,26 @@ window.addEventListener('DOMContentLoaded', () => {
 
     initChat(messages, document.querySelector('.chat-messages') as HTMLElement, 'root');
 
-    renderMainVideo(
+    // Инициализация основного видео
+    const mainVideoElement = renderMainVideo(
       document.querySelector('.main-video') as HTMLElement,
       {
         src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
         className: 'main-video__player',
       }
     );
+    const handleRootMainVideoEvents = handleMainVideoEvents.bind(null, mainVideoElement, 'Root');
+    mainVideoElement.addEventListener('pause', handleRootMainVideoEvents);
+    mainVideoElement.addEventListener('play', handleRootMainVideoEvents);
+    mainVideoElement.addEventListener('playing', handleRootMainVideoEvents);
+    // mainVideoElement.addEventListener('timeupdate', handleRootMainVideoEvents);
+    mainVideoElement.addEventListener('seeked', handleRootMainVideoEvents);
+    mainVideoElement.addEventListener('waiting', handleRootMainVideoEvents);
   }
 
   async function createClient() {
+    let mainVideoElement: HTMLVideoElement;
+
     (document.querySelector('.choose-type') as HTMLElement).style.display = 'none';
     (document.querySelector('.video-messanger-container') as HTMLElement).classList.remove('video-messanger-container_hidden');
     (document.querySelector('.client-type') as HTMLElement).innerText = 'Client';
@@ -192,22 +202,40 @@ window.addEventListener('DOMContentLoaded', () => {
       * со страницы рута было проще отправлять данные, тк сооединения
       * будут добавлены в peer.connections
       */
-      const dataConnectToRoot = peer.connect(rootPeerId, {serialization: 'json', metadata: {type: 'DataConnection'}});
+      const dataConnectToRoot = peer.connect(rootPeerId, {serialization: 'json', metadata: {type: 'DataConnection', peerType: 'Root'}});
       dataConnectToRoot.on('open', () => {
         dataConnectToRoot.on('data', (data: any) => {
-          if (data.type === 'client_ids') {
-            // Установить соединение с клиентами из пришедшего фида
-            data.payload.forEach((id: string) => {
-              if (Object.keys(peer.connections).includes(id)) return;
-              incrementCounterParticipants(1);
-              peer.call(id, localStream);
-            });
-          } else if (data.type === 'messages') {
-            data.payload.forEach((message: Message) => {
-              renderMessage(message, document.querySelector('.chat-messages') as HTMLElement);
-            });
-          } else if (data.type === 'message') {
-            renderMessage(data.payload, document.querySelector('.chat-messages') as HTMLElement);
+          switch(data.type) {
+            case 'client_ids':
+              // Установить соединение с клиентами из пришедшего фида
+              data.payload.forEach((id: string) => {
+                if (Object.keys(peer.connections).includes(id)) return;
+                incrementCounterParticipants(1);
+                peer.call(id, localStream);
+              });
+              break;
+            case 'messages':
+              data.payload.forEach((message: Message) => {
+                renderMessage(message, document.querySelector('.chat-messages') as HTMLElement);
+              });
+              break;
+            case 'message':
+              renderMessage(data.payload, document.querySelector('.chat-messages') as HTMLElement);
+              break;
+            case 'player_event':
+              if (mainVideoElement) {
+                const { eventType, playerCurrentTime } = data.payload;
+                if (eventType === 'pause') {
+                  mainVideoElement.currentTime = playerCurrentTime;
+                  mainVideoElement.pause();
+                } else if ((eventType === 'play') || (eventType === 'playing') || (eventType === 'seeked')) {
+                  mainVideoElement.currentTime = playerCurrentTime;
+                  mainVideoElement.play();
+                } else if (eventType === 'waiting') {
+                  mainVideoElement.pause();
+                }
+              }
+              break;
           }
         });
       });
@@ -236,13 +264,46 @@ window.addEventListener('DOMContentLoaded', () => {
 
     initChat(messages, document.querySelector('.chat-messages') as HTMLElement, 'client', rootPeerId);
 
-    renderMainVideo(
+    mainVideoElement = renderMainVideo(
       document.querySelector('.main-video') as HTMLElement,
       {
         src: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
         className: 'main-video__player',
       }
     );
+    const handleClientMainVideoEvents = handleMainVideoEvents.bind(null, mainVideoElement, 'Client');
+    mainVideoElement.addEventListener('pause', handleClientMainVideoEvents);
+    mainVideoElement.addEventListener('play', handleClientMainVideoEvents);
+    mainVideoElement.addEventListener('playing', handleClientMainVideoEvents);
+    // mainVideoElement.addEventListener('timeupdate', handleClientMainVideoEvents);
+    mainVideoElement.addEventListener('seeked', handleClientMainVideoEvents);
+    mainVideoElement.addEventListener('waiting', handleClientMainVideoEvents);
+  }
+
+  function handleMainVideoEvents(
+    player: HTMLVideoElement,
+    peerType: 'Root' | 'Client',
+    event: Event
+  ) {
+    // Отправляет события плеера клиентам или руту
+    Object.keys(peer.connections)
+      .map((key) => getDataConnection(peer.connections[key]))
+      .forEach((dataConnection) => {
+        if (
+          (peerType === 'Root')
+          || ((peerType === 'Client') && (dataConnection.metadata.peerType === 'Root'))
+        ) {
+          // Вместе с seeked передавать играет ли плеер
+          dataConnection.send({
+            type: 'player_event',
+            payload: {
+              eventType: event.type,
+              playerCurrentTime: player.currentTime,
+              eventTimeStamp: event.timeStamp,
+            },
+          });
+        }
+      });
   }
 
   function applyUserName(user: User, input: HTMLInputElement) {
@@ -257,13 +318,14 @@ window.addEventListener('DOMContentLoaded', () => {
     counterElement.innerText = String(currentValue + increment);
   }
 
-  function renderMainVideo(container: HTMLElement, options: {src: string; className: string;}) {
+  function renderMainVideo(container: HTMLElement, options: {src: string; className: string;}): HTMLVideoElement {
     const videoElement = document.createElement('video');
     videoElement.controls = true;
     videoElement.classList.add(options.className);
     videoElement.src = options.src;
     container.appendChild(videoElement);
     videoElement.play();
+    return videoElement;
   }
 
   function initChat(messages: Messages, container: HTMLElement, type: 'root' | 'client', rootPeerId?: string) {
@@ -388,5 +450,9 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     return output;
+  }
+
+  function getDataConnection(connections: any[]): any {
+    return connections.find((connection: any) => connection.metadata.type === 'DataConnection');
   }
 });
