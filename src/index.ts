@@ -345,14 +345,6 @@ window.addEventListener('DOMContentLoaded', () => {
     videoElement.srcObject = stream;
     videoElement.classList.add('users-video__video');
     videoElement.dataset.streamId = stream.id;
-    stream.getTracks().forEach(function addEchoCancellation(track) {
-      const constraints = track.getConstraints();
-      if (constraints.echoCancellation) return;
-      track.applyConstraints({
-        ...constraints,
-        echoCancellation: true,
-      });
-    });
     if (options?.isMuted) {
       videoElement.muted = true;
     }
