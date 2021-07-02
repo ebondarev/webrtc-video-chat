@@ -403,6 +403,6 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   function getDataConnection(connections: any[]): Peer.DataConnection | undefined {
-    return connections.find((connection) => (connection.metadata as any).type === 'DataConnection');
+    return connections.find((connection) => connection.type === 'data');
   }
 });
