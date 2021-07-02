@@ -57,14 +57,16 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   // Popup
-  document.querySelector('.collect-user-data__input').addEventListener('keydown', (e: Event) => {
+  const collectUserDataInputElement: HTMLInputElement = document.querySelector('.collect-user-data__input');
+  collectUserDataInputElement.focus();
+  collectUserDataInputElement.addEventListener('keydown', (e: Event) => {
     const event = e as KeyboardEvent;
     if (event.code?.toLowerCase() !== 'enter') return;
     event.preventDefault();
-    applyUserName(user, document.querySelector('.collect-user-data__input') as HTMLInputElement);
+    applyUserName(user, collectUserDataInputElement);
   });
   document.querySelector('.collect-user-data__btn').addEventListener('click', () => {
-    applyUserName(user, document.querySelector('.collect-user-data__input') as HTMLInputElement);
+    applyUserName(user, collectUserDataInputElement);
   });
 
   // Create Root
