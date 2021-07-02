@@ -327,10 +327,8 @@ window.addEventListener('DOMContentLoaded', () => {
         echoCancellation: true,
       },
       video: {
-        width: 320,
-        height: 240,
+        width: 270,
         facingMode: 'user',
-        echoCancellation: true,
       },
     };
     return await navigator.mediaDevices.getUserMedia(constraints);
