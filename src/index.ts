@@ -242,6 +242,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // Отправляет события плеера клиентам или руту
     Object.keys(peer.connections)
       .map((key) => getDataConnection(peer.connections[key]))
+      .filter(Boolean)
       .forEach((dataConnection) => {
         if (
           (peerType === 'Root')
