@@ -90,10 +90,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const localStream = await getLocalMediaStream();
 
-    peer.on('call', function handleClientCall(clientCall) {
+    peer.on('call', function handleClientMediaConnection(clientMediaConnection) {
       incrementCounterParticipants(1);
-      clientCall.answer(localStream);
-      clientCall.on('stream', function handleClientStream(clientStream) {
+      clientMediaConnection.answer(localStream);
+      clientMediaConnection.on('stream', function handleClientStream(clientStream) {
         renderVideoStream(clientStream);
         Object.keys(peer.connections).forEach(function sendClientsIdConnectedClients(clientId: string, index, arr) {
           const listWithoutClientId = arr.filter((id) => id !== clientId);
@@ -103,19 +103,15 @@ window.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    /*
-     * Получает коннект от клиентов. Отправляет имеющиеся сообщения.
-     * Подписывается на появление новых сообщений и отправляет их клиенту.
-     */
-    peer.on('connection', (dataConnection) => {
-      dataConnection.send({ type: 'messages', payload: messages.list() });
-      messages.subscribe((message) => {
-        dataConnection.send({
+    peer.on('connection', function handleClientDataConnection(clientDataConnection) {
+      clientDataConnection.send({ type: 'messages', payload: messages.list() });
+      messages.subscribe(function sendToClientNewMessage(message) {
+        clientDataConnection.send({
           type: 'message',
           payload: message,
         });
       });
-      dataConnection.on('data', (data: any) => {
+      clientDataConnection.on('data', function handleDataFromClient(data: any) {
         if (data.type === 'message') {
           messages.add(data.payload);
           renderMessage(data.payload, document.querySelector('.chat-messages') as HTMLElement);
@@ -128,7 +124,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
     initChat(messages, document.querySelector('.chat-messages') as HTMLElement, 'root');
 
-    // Инициализация основного видео
     const mainVideoElement = renderMainVideo(
       document.querySelector('.main-video') as HTMLElement,
       {
@@ -164,27 +159,27 @@ window.addEventListener('DOMContentLoaded', () => {
       */
       const dataConnectToRoot = peer.connect(rootPeerId, { serialization: 'json', metadata: { type: 'DataConnection', peerType: 'Root' } });
       dataConnectToRoot.on('open', () => {
-        dataConnectToRoot.on('data', (data: any) => {
-          switch(data.type) {
+        dataConnectToRoot.on('data', function handleDataFromRoot(dataFromRoot: any) {
+          switch(dataFromRoot.type) {
             case 'client_ids':
               // Установить соединение с клиентами из пришедшего фида
-              data.payload.forEach((id: string) => {
+              dataFromRoot.payload.forEach((id: string) => {
                 if (Object.keys(peer.connections).includes(id)) return;
                 incrementCounterParticipants(1);
                 peer.call(id, localStream);
               });
               break;
             case 'messages':
-              data.payload.forEach((message: Message) => {
+              dataFromRoot.payload.forEach((message: Message) => {
                 renderMessage(message, document.querySelector('.chat-messages') as HTMLElement);
               });
               break;
             case 'message':
-              renderMessage(data.payload, document.querySelector('.chat-messages') as HTMLElement);
+              renderMessage(dataFromRoot.payload, document.querySelector('.chat-messages') as HTMLElement);
               break;
             case 'player_event':
               if (mainVideoElement) {
-                const { eventType, playerCurrentTime } = data.payload;
+                const { eventType, playerCurrentTime } = dataFromRoot.payload;
                 if (eventType === 'pause') {
                   mainVideoElement.currentTime = playerCurrentTime;
                   mainVideoElement.pause();
@@ -201,8 +196,8 @@ window.addEventListener('DOMContentLoaded', () => {
       });
 
       const mediaConnectToRoot = peer.call(rootPeerId, localStream, { metadata: { type: 'MediaConnection' } });
-      mediaConnectToRoot.on('stream', function handleRootStream(rootStream: MediaStream) {
-        renderVideoStream(rootStream);
+      mediaConnectToRoot.on('stream', function handleMediaStreamFromRoot(rootMediaStream) {
+        renderVideoStream(rootMediaStream);
       });
     }
 
@@ -211,13 +206,12 @@ window.addEventListener('DOMContentLoaded', () => {
     // Мьют локального стрима чтобы избавиться от эхо
     renderVideoStream(localStream, { isMuted: true });
 
-    // Обрабатывает стримы от других клиентов
-    const idsOfPlayingClients: string[] = [];
-    peer.on('call', (call) => {
-      if (idsOfPlayingClients.includes(call.peer)) return;
-      idsOfPlayingClients.push(call.peer);
-      call.answer(localStream);
-      call.on('stream', (stream: MediaStream) => {
+    const idsOfClientsWhoseMediaStreamsAreBeingPlayed: string[] = [];
+    peer.on('call', function handleClientMediaConnection(clientMediaConnection) {
+      if (idsOfClientsWhoseMediaStreamsAreBeingPlayed.includes(clientMediaConnection.peer)) return;
+      idsOfClientsWhoseMediaStreamsAreBeingPlayed.push(clientMediaConnection.peer);
+      clientMediaConnection.answer(localStream);
+      clientMediaConnection.on('stream', (stream: MediaStream) => {
         renderVideoStream(stream);
       });
     });
