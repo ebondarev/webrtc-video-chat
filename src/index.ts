@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import 'normalize.css';
 import './style.css';
-import * as Peer from './vendor/peerjs';
+import Peer from './vendor/peerjs';
 
 window.addEventListener('DOMContentLoaded', () => {
   interface Messages {
