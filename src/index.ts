@@ -4,7 +4,7 @@ import './style.css';
 import Peer from './vendor/peerjs';
 
 window.addEventListener('DOMContentLoaded', () => {
-  interface Messages {
+  interface MessageList {
     add: (message: any) => void;
     list: () => any[];
     subscribe: (fn: (message: Message) => void) => void;
@@ -21,11 +21,11 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
   
-  const messages: Messages = (() => {
+  const messages: MessageList = (() => {
     const _subscribers: ((message: Message) => unknown)[] = [];
     const _messages: Message[] = [];
     return {
-      add(message: any) {
+      add(message: Message) {
         _messages.push(message);
         this.notify();
       },
@@ -51,9 +51,7 @@ window.addEventListener('DOMContentLoaded', () => {
     avatar: 'https://cdn.iconscout.com/icon/free/png-256/avatar-366-456318.png',
   };
 
-  const peerOptions: Peer.PeerJSOption = { debug: 1 };
-
-  const peer  = new Peer(peerOptions);
+  const peer  = new Peer({ debug: 1 });
   peer.on('open', function fetchPeerId(id: string) {
     (document.querySelector('.peer-id') as HTMLElement).innerText = id;
   });
@@ -95,13 +93,12 @@ window.addEventListener('DOMContentLoaded', () => {
     peer.on('call', function handleClientCall(clientCall) {
       incrementCounterParticipants(1);
       clientCall.answer(localStream);
-      clientCall.on('stream', function handleClientStream(clientStream: MediaStream) {
+      clientCall.on('stream', function handleClientStream(clientStream) {
         renderVideoStream(clientStream);
-        // Сообщает клиентам id нового подключённого клиента
-        Object.keys(peer.connections).forEach((clientId: string, index, arr) => {
+        Object.keys(peer.connections).forEach(function sendClientsIdConnectedClients(clientId: string, index, arr) {
           const listWithoutClientId = arr.filter((id) => id !== clientId);
           const dataConnection = getDataConnection(peer.connections[clientId]);
-          dataConnection.send({type: 'client_ids', payload: listWithoutClientId});
+          dataConnection.send({ type: 'client_ids', payload: listWithoutClientId });
         });
       });
     });
@@ -111,7 +108,7 @@ window.addEventListener('DOMContentLoaded', () => {
      * Подписывается на появление новых сообщений и отправляет их клиенту.
      */
     peer.on('connection', (dataConnection) => {
-      dataConnection.send({type: 'messages', payload: messages.list()});
+      dataConnection.send({ type: 'messages', payload: messages.list() });
       messages.subscribe((message) => {
         dataConnection.send({
           type: 'message',
@@ -127,7 +124,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     // Мьют локального стрима чтобы избавиться от эхо
-    renderVideoStream(localStream, {isMuted: true});
+    renderVideoStream(localStream, { isMuted: true });
 
     initChat(messages, document.querySelector('.chat-messages') as HTMLElement, 'root');
 
@@ -165,7 +162,7 @@ window.addEventListener('DOMContentLoaded', () => {
       * со страницы рута было проще отправлять данные, тк сооединения
       * будут добавлены в peer.connections
       */
-      const dataConnectToRoot = peer.connect(rootPeerId, {serialization: 'json', metadata: {type: 'DataConnection', peerType: 'Root'}});
+      const dataConnectToRoot = peer.connect(rootPeerId, { serialization: 'json', metadata: { type: 'DataConnection', peerType: 'Root' } });
       dataConnectToRoot.on('open', () => {
         dataConnectToRoot.on('data', (data: any) => {
           switch(data.type) {
@@ -203,7 +200,7 @@ window.addEventListener('DOMContentLoaded', () => {
         });
       });
 
-      const mediaConnectToRoot = peer.call(rootPeerId, localStream, {metadata: {type: 'MediaConnection'}});
+      const mediaConnectToRoot = peer.call(rootPeerId, localStream, { metadata: { type: 'MediaConnection' } });
       mediaConnectToRoot.on('stream', function handleRootStream(rootStream: MediaStream) {
         renderVideoStream(rootStream);
       });
@@ -212,7 +209,7 @@ window.addEventListener('DOMContentLoaded', () => {
     incrementCounterParticipants(1);
 
     // Мьют локального стрима чтобы избавиться от эхо
-    renderVideoStream(localStream, {isMuted: true});
+    renderVideoStream(localStream, { isMuted: true });
 
     // Обрабатывает стримы от других клиентов
     const idsOfPlayingClients: string[] = [];
@@ -281,7 +278,12 @@ window.addEventListener('DOMContentLoaded', () => {
     counterElement.innerText = String(currentValue + increment);
   }
 
-  function renderMainVideo(container: HTMLElement, options: {src: string; className: string;}): HTMLVideoElement {
+  interface RenderMainVideoOptions {
+    src: string;
+    className: string;
+  }
+
+  function renderMainVideo(container: HTMLElement, options: RenderMainVideoOptions): HTMLVideoElement {
     const videoElement = document.createElement('video');
     videoElement.controls = true;
     videoElement.classList.add(options.className);
@@ -291,7 +293,7 @@ window.addEventListener('DOMContentLoaded', () => {
     return videoElement;
   }
 
-  function initChat(messages: Messages, container: HTMLElement, type: 'root' | 'client', rootPeerId?: string) {
+  function initChat(messages: MessageList, container: HTMLElement, type: 'root' | 'client', rootPeerId?: string) {
     messages.list().forEach((msg) => renderMessage(msg, container));
     document.querySelector('.chat-textarea__input-area')?.addEventListener('keyup', (e: Event) => {
       const event = e as KeyboardEvent;
@@ -314,9 +316,9 @@ window.addEventListener('DOMContentLoaded', () => {
           renderMessage(message, document.querySelector('.chat-messages') as HTMLElement);
         } else if ((type === 'client') && rootPeerId) {
           // Отправляет сообщение руту
-          const connectToRoot = peer.connect(rootPeerId, {serialization: 'json'});
+          const connectToRoot = peer.connect(rootPeerId, { serialization: 'json' });
           connectToRoot.on('open', () => {
-            connectToRoot.send({type: 'message', payload: message});
+            connectToRoot.send({ type: 'message', payload: message });
           });
         }
         (event.target as HTMLTextAreaElement).value = '';
@@ -326,7 +328,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
   async function getLocalMediaStream() {
     const constraints = {
-      // audio: true,
       audio: {
         echoCancellation: true,
       },
@@ -340,7 +341,11 @@ window.addEventListener('DOMContentLoaded', () => {
     return await navigator.mediaDevices.getUserMedia(constraints);
   }
 
-  function renderVideoStream(stream: MediaStream, settings?: {isMuted: boolean}) {
+  interface RenderVideoStreamOptions {
+    isMuted: boolean;
+  }
+  
+  function renderVideoStream(stream: MediaStream, options?: RenderVideoStreamOptions) {
     const isVideoAdded = Boolean(document.querySelector(`[data-stream-id="${stream.id}"]`));
     if (isVideoAdded) return;
     const videoElement = document.createElement('video');
@@ -355,7 +360,7 @@ window.addEventListener('DOMContentLoaded', () => {
         echoCancellation: true,
       });
     });
-    if (settings?.isMuted) {
+    if (options?.isMuted) {
       videoElement.muted = true;
     }
     document.querySelector('.users-video')?.appendChild(videoElement);
@@ -402,21 +407,17 @@ window.addEventListener('DOMContentLoaded', () => {
       .replace(/'/g, '&#39;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
-
     if (typeof strings === 'string') {
       return _htmlEscape(strings);
     }
-
     let output = strings[0];
     for (const [index, value] of values.entries()) {
       output = output + _htmlEscape(String(value)) + strings[index + 1];
     }
-
     return output;
   }
 
   function getDataConnection(connections: any[]): Peer.DataConnection | undefined {
     return connections.find((connection) => (connection.metadata as any).type === 'DataConnection');
   }
-
 });
