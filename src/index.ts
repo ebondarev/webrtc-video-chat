@@ -36,7 +36,13 @@ interface RenderMainVideoOptions {
   controls?: boolean;
 }
 
+interface PeerConnections {
+  [key: string]: (Peer.DataConnection | Peer.MediaConnection)[];
+}
+
 window.addEventListener('DOMContentLoaded', () => {
+  const peerConnections: PeerConnections = {};
+
   const messages: MessageList = (() => {
     const _subscribers: ((message: Message) => unknown)[] = [];
     const _messages: Message[] = [];
@@ -93,7 +99,6 @@ window.addEventListener('DOMContentLoaded', () => {
   document.querySelector('.call-to__btn')?.addEventListener('click', createClient);
 
 
-
   /* ***************** FUNCTIONS ***************** */
 
   async function createRoot() {
@@ -104,7 +109,7 @@ window.addEventListener('DOMContentLoaded', () => {
     (document.querySelector('.client-type') as HTMLElement).innerText = 'Root';
 
     // Мьют локального стрима чтобы избавиться от эхо
-    renderVideoStream(localStream, { isMuted: true });
+    renderVideoStream(localStream, peer.id, { isMuted: true });
 
     initChat(messages, document.querySelector('.chat-messages') as HTMLElement, 'root');
 
@@ -125,18 +130,24 @@ window.addEventListener('DOMContentLoaded', () => {
     mainVideoElement.addEventListener('waiting', shareRootMainVideoEvents);
 
     peer.on('call', (clientMediaConnection) => {
+      saveConnection(peerConnections, clientMediaConnection);
       incrementCounterParticipants(1);
       clientMediaConnection.answer(localStream);
       clientMediaConnection.on('stream', (clientStream) => {
-        renderVideoStream(clientStream);
+        renderVideoStream(clientStream, clientMediaConnection.peer);
+      });
+      clientMediaConnection.on('close', () => {
+        // Firefox does not yet support this event.
+        console.log('[LOG]', 'close media connection');
       });
     });
 
     peer.on('connection', (clientDataConnection) => {
+      saveConnection(peerConnections, clientDataConnection);
       clientDataConnection.on('open', () => {
-        Object.keys(peer.connections).forEach((clientId: string, index, arr) => {
+        Object.keys(peerConnections).forEach((clientId: string, index, arr) => {
           const listWithoutClientId = arr.filter((id) => id !== clientId);
-          const dataConnection = getDataConnection(peer.connections[clientId]);
+          const dataConnection = getDataConnection(peerConnections[clientId]);
           dataConnection.send({ type: 'client_ids', payload: listWithoutClientId });
           dataConnection.send({ type: 'playback_timestamp', payload: mainVideoElement.currentTime });
         });
@@ -153,10 +164,22 @@ window.addEventListener('DOMContentLoaded', () => {
           if (data.type === 'message') {
             messages.add(data.payload);
             renderMessage(data.payload, document.querySelector('.chat-messages') as HTMLElement);
+          } else if (data.type === 'close_connection') {
+            const peerId: string = data.payload;
+            const mediaConnectionId = (peerConnections[peerId].find((connection) => connection.type === 'media') as Peer.MediaConnection).peer;
+            const videoElement = document.querySelector(`[data-stream-id="${mediaConnectionId}"]`);
+            videoElement.parentNode.removeChild(videoElement);
+            delete peerConnections[peerId];
           }
         });
       });
+      clientDataConnection.on('close', () => {
+        // Firefox does not yet support this event.
+        console.log('[LOG]', 'close data connection');
+      });
     });
+
+    setControlsListeners();
   }
 
   async function createClient() {
@@ -191,16 +214,17 @@ window.addEventListener('DOMContentLoaded', () => {
       /*
       * Сразу устанавливаю MediaConnection и DataConnection чтобы
       * со страницы рута было проще отправлять данные, тк сооединения
-      * будут добавлены в peer.connections
+      * будут добавлены в peerConnections
       */
       const dataConnectToRoot = peer.connect(rootPeerId, { serialization: 'json', metadata: { type: 'DataConnection', peerType: 'Root' } });
+      saveConnection(peerConnections, dataConnectToRoot);
       dataConnectToRoot.on('open', () => {
         dataConnectToRoot.on('data', (dataFromRoot: any) => {
           switch(dataFromRoot.type) {
             case 'client_ids':
               // Установить соединение с клиентами из пришедшего фида
               dataFromRoot.payload.forEach((id: string) => {
-                if (Object.keys(peer.connections).includes(id)) return;
+                if (Object.keys(peerConnections).includes(id)) return;
                 incrementCounterParticipants(1);
                 peer.call(id, localStream);
               });
@@ -256,15 +280,18 @@ window.addEventListener('DOMContentLoaded', () => {
       });
 
       const mediaConnectToRoot = peer.call(rootPeerId, localStream, { metadata: { type: 'MediaConnection' } });
+      saveConnection(peerConnections, mediaConnectToRoot);
       mediaConnectToRoot.on('stream', (rootMediaStream) => {
-        renderVideoStream(rootMediaStream);
+        renderVideoStream(rootMediaStream, mediaConnectToRoot.peer);
       });
+
+      setControlsListeners();
     }
 
     incrementCounterParticipants(1);
 
     // Мьют локального стрима чтобы избавиться от эхо
-    renderVideoStream(localStream, { isMuted: true });
+    renderVideoStream(localStream, peer.id, { isMuted: true });
 
     const idsOfClientsWhoseMediaStreamsAreBeingPlayed: string[] = [];
     peer.on('call', (clientMediaConnection) => {
@@ -272,7 +299,7 @@ window.addEventListener('DOMContentLoaded', () => {
       idsOfClientsWhoseMediaStreamsAreBeingPlayed.push(clientMediaConnection.peer);
       clientMediaConnection.answer(localStream);
       clientMediaConnection.on('stream', (stream: MediaStream) => {
-        renderVideoStream(stream);
+        renderVideoStream(stream, clientMediaConnection.peer);
       });
     });
 
@@ -284,8 +311,8 @@ window.addEventListener('DOMContentLoaded', () => {
     currentPeerType: 'Root' | 'Client',
     event: Event
   ) {
-    Object.keys(peer.connections)
-      .map((peerId) => getDataConnection(peer.connections[peerId]))
+    Object.keys(peerConnections)
+      .map((peerId) => getDataConnection(peerConnections[peerId]))
       .filter(Boolean)
       .forEach((dataConnection) => {
         if (
@@ -373,13 +400,13 @@ window.addEventListener('DOMContentLoaded', () => {
     return await navigator.mediaDevices.getUserMedia(constraints);
   }
 
-  function renderVideoStream(stream: MediaStream, options?: RenderVideoStreamOptions) {
-    const isVideoAdded = Boolean(document.querySelector(`[data-stream-id="${stream.id}"]`));
+  function renderVideoStream(stream: MediaStream, connectionId: string, options?: RenderVideoStreamOptions) {
+    const isVideoAdded = Boolean(document.querySelector(`[data-stream-id="${connectionId}"]`));
     if (isVideoAdded) return;
     const videoElement = document.createElement('video');
     videoElement.srcObject = stream;
     videoElement.classList.add('users-video__video');
-    videoElement.dataset.streamId = stream.id;
+    videoElement.dataset.streamId = connectionId;
     if (options?.isMuted) {
       videoElement.muted = true;
     }
@@ -439,5 +466,62 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function getDataConnection(connections: any[]): Peer.DataConnection | undefined {
     return connections.find((connection) => connection.type === 'data');
+  }
+
+  function setControlsListeners() {
+    document.querySelector('.icon__call-end')
+      .addEventListener('click', () => {
+        endConversation(peerConnections);
+        location.reload();
+      });
+
+    document.querySelector('.icon__microphone')
+      .addEventListener('click', () => {
+        toggleMicrophone();
+      });
+
+    document.querySelector('.icon__camera')
+      .addEventListener('click', () => {
+        toggleCamera();
+      });
+
+    document.querySelector('.icon__screen')
+      .addEventListener('click', () => {
+        toggleShareScreen();
+      });
+  }
+  
+  function endConversation(peerConnections: PeerConnections) {
+    Object.keys(peerConnections)
+      .forEach((key) => {
+        [ ...peerConnections[key] ]
+          .forEach((connection: Peer.DataConnection | Peer.MediaConnection) => {
+            if (connection.type === 'data') {
+              (connection as Peer.DataConnection).send({ type: 'close_connection', payload: peer.id });
+            }
+            connection.close();
+          });
+      });
+  }
+
+  function toggleMicrophone() {
+    console.log('[LOG]', 'toggleMicrophone');
+  }
+
+  function toggleCamera() {
+    console.log('[LOG]', 'toggleCamera');
+  }
+
+  function toggleShareScreen() {
+    console.log('[LOG]', 'toggleShareScreen');
+  }
+
+  function saveConnection(peerConnections: PeerConnections, connect: Peer.DataConnection | Peer.MediaConnection): PeerConnections {
+    if (peerConnections[connect.peer]) {
+      peerConnections[connect.peer].push(connect);
+    } else {
+      peerConnections[connect.peer] = [connect];
+    }
+    return peerConnections;
   }
 });
