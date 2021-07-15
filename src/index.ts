@@ -115,56 +115,46 @@ window.addEventListener('DOMContentLoaded', () => {
         className: 'main-video__player',
       }
     );
-    const handleRootMainVideoEvents = handleMainVideoEvents.bind(null, mainVideoElement, 'Root');
-    const handleRootMainVideoTimeupdate = throttle(1000, handleRootMainVideoEvents);
-    mainVideoElement.addEventListener('pause', handleRootMainVideoEvents);
-    mainVideoElement.addEventListener('play', handleRootMainVideoEvents);
-    mainVideoElement.addEventListener('playing', handleRootMainVideoEvents);
-    mainVideoElement.addEventListener('timeupdate', handleRootMainVideoTimeupdate);
-    mainVideoElement.addEventListener('seeked', handleRootMainVideoEvents);
-    mainVideoElement.addEventListener('waiting', handleRootMainVideoEvents);
+    const shareRootMainVideoEvents = shareMainVideoEvents.bind(null, mainVideoElement, 'Root');
+    const shareRootMainVideoTimeupdate = throttle(1000, shareRootMainVideoEvents);
+    mainVideoElement.addEventListener('pause', shareRootMainVideoEvents);
+    mainVideoElement.addEventListener('play', shareRootMainVideoEvents);
+    mainVideoElement.addEventListener('playing', shareRootMainVideoEvents);
+    mainVideoElement.addEventListener('timeupdate', shareRootMainVideoTimeupdate);
+    mainVideoElement.addEventListener('seeked', shareRootMainVideoEvents);
+    mainVideoElement.addEventListener('waiting', shareRootMainVideoEvents);
 
     peer.on('call', (clientMediaConnection) => {
       incrementCounterParticipants(1);
       clientMediaConnection.answer(localStream);
       clientMediaConnection.on('stream', (clientStream) => {
         renderVideoStream(clientStream);
+      });
+    });
+
+    peer.on('connection', (clientDataConnection) => {
+      clientDataConnection.on('open', () => {
         Object.keys(peer.connections).forEach((clientId: string, index, arr) => {
           const listWithoutClientId = arr.filter((id) => id !== clientId);
           const dataConnection = getDataConnection(peer.connections[clientId]);
           dataConnection.send({ type: 'client_ids', payload: listWithoutClientId });
           dataConnection.send({ type: 'playback_timestamp', payload: mainVideoElement.currentTime });
         });
-      });
-    });
 
-    const clientsIdWithBufferingVideoPlayer = new Set<string>();
-
-    peer.on('connection', (clientDataConnection) => {
-      clientDataConnection.send({ type: 'messages', payload: messages.list() });
-      messages.subscribe((message) => {
-        clientDataConnection.send({
-          type: 'message',
-          payload: message,
+        clientDataConnection.send({ type: 'messages', payload: messages.list() });
+        messages.subscribe((message) => {
+          clientDataConnection.send({
+            type: 'message',
+            payload: message,
+          });
         });
-      });
-      clientDataConnection.on('data', (data: any) => {
-        if (data.type === 'message') {
-          messages.add(data.payload);
-          renderMessage(data.payload, document.querySelector('.chat-messages') as HTMLElement);
-        } else if (data.type === 'player_event') {
-          if (data.payload.eventType === 'waiting') {
-            clientsIdWithBufferingVideoPlayer.add(clientDataConnection.peer);
-            // TODO: wait
-            // mainVideoElement.pause();
-          } else if (data.payload.eventType === 'playing') {
-            clientsIdWithBufferingVideoPlayer.delete(clientDataConnection.peer);
-            if (clientsIdWithBufferingVideoPlayer.size === 0) {
-              // TODO: continue play
-              // mainVideoElement.play();
-            }
+
+        clientDataConnection.on('data', (data: any) => {
+          if (data.type === 'message') {
+            messages.add(data.payload);
+            renderMessage(data.payload, document.querySelector('.chat-messages') as HTMLElement);
           }
-        }
+        });
       });
     });
   }
@@ -186,16 +176,16 @@ window.addEventListener('DOMContentLoaded', () => {
         controls: false,
       }
     );
-    const handleClientMainVideoEvents = handleMainVideoEvents.bind(null, mainVideoElement, 'Client');
-    /* const handleClientMainVideoTimeupdate = throttle(1000, handleClientMainVideoEvents);
-    mainVideoElement.addEventListener('pause', handleClientMainVideoEvents);
-    mainVideoElement.addEventListener('play', handleClientMainVideoEvents);
-    mainVideoElement.addEventListener('playing', handleClientMainVideoEvents);
+    // const shareClientMainVideoEvents = shareMainVideoEvents.bind(null, mainVideoElement, 'Client', null);
+    /* const handleClientMainVideoTimeupdate = throttle(1000, shareClientMainVideoEvents);
+    mainVideoElement.addEventListener('pause', shareClientMainVideoEvents);
+    mainVideoElement.addEventListener('play', shareClientMainVideoEvents);
+    mainVideoElement.addEventListener('playing', shareClientMainVideoEvents);
     mainVideoElement.addEventListener('timeupdate', handleClientMainVideoTimeupdate);
-    mainVideoElement.addEventListener('seeked', handleClientMainVideoEvents);
-    mainVideoElement.addEventListener('waiting', handleClientMainVideoEvents); */
-    mainVideoElement.addEventListener('waiting', handleClientMainVideoEvents);
-    mainVideoElement.addEventListener('playing', handleClientMainVideoEvents);
+    mainVideoElement.addEventListener('seeked', shareClientMainVideoEvents);
+    mainVideoElement.addEventListener('waiting', shareClientMainVideoEvents); */
+    // mainVideoElement.addEventListener('waiting', shareClientMainVideoEvents);
+    // mainVideoElement.addEventListener('playing', shareClientMainVideoEvents);
 
     {
       /*
@@ -225,15 +215,36 @@ window.addEventListener('DOMContentLoaded', () => {
               break;
             case 'player_event':
               if (mainVideoElement) {
-                const { eventType, playerCurrentTime } = dataFromRoot.payload;
+                const { eventType, playerCurrentTime, eventTimeStamp } = dataFromRoot.payload;
                 if (eventType === 'pause') {
-                  mainVideoElement.currentTime = playerCurrentTime;
-                  mainVideoElement.pause();
+                  const isVideoBuffering = mainVideoElement.networkState === mainVideoElement.NETWORK_LOADING;
+                  if (isVideoBuffering === false) {
+                    mainVideoElement.currentTime = playerCurrentTime;
+                    mainVideoElement.pause();
+                  }
                 } else if ((eventType === 'play') || (eventType === 'playing') || (eventType === 'seeked')) {
                   mainVideoElement.currentTime = playerCurrentTime;
                   mainVideoElement.play();
                 } else if (eventType === 'waiting') {
                   mainVideoElement.pause();
+                } else if (eventType === 'timeupdate') {
+                  const latency = (Date.now() - eventTimeStamp) / 1000; // sec
+                  const currentTimeDiff = mainVideoElement.currentTime - playerCurrentTime + latency; // sec
+                  const slowPlaybackRate = 0.9;
+                  const normalPlaybackRate = 1.0
+                  const fastPlaybackRate = 1.1;
+                  if ((Math.abs(currentTimeDiff) < 0.5) && (mainVideoElement.playbackRate !== normalPlaybackRate)) {
+                    mainVideoElement.playbackRate = normalPlaybackRate;
+                  } if ((0.5 <= currentTimeDiff) && (currentTimeDiff < 2) && (mainVideoElement.playbackRate !== slowPlaybackRate)) {
+                    mainVideoElement.playbackRate = slowPlaybackRate;
+                  } else if ((-0.5 >= currentTimeDiff) && (currentTimeDiff > -2) && (mainVideoElement.playbackRate !== fastPlaybackRate)) {
+                    mainVideoElement.playbackRate = fastPlaybackRate;
+                  } else if (Math.abs(currentTimeDiff) >= 2) {
+                    mainVideoElement.currentTime = playerCurrentTime;
+                    if (mainVideoElement.playbackRate !== normalPlaybackRate) {
+                      mainVideoElement.playbackRate = normalPlaybackRate;
+                    }
+                  }
                 }
               }
               break;
@@ -268,12 +279,11 @@ window.addEventListener('DOMContentLoaded', () => {
     initChat(messages, document.querySelector('.chat-messages') as HTMLElement, 'client', rootPeerId);
   }
 
-  function handleMainVideoEvents(
+  function shareMainVideoEvents(
     player: HTMLVideoElement,
     currentPeerType: 'Root' | 'Client',
     event: Event
   ) {
-    // Отправляет события плеера клиентам или руту
     Object.keys(peer.connections)
       .map((peerId) => getDataConnection(peer.connections[peerId]))
       .filter(Boolean)
@@ -287,7 +297,7 @@ window.addEventListener('DOMContentLoaded', () => {
             payload: {
               eventType: event.type,
               playerCurrentTime: player.currentTime,
-              eventTimeStamp: event.timeStamp,
+              eventTimeStamp: Date.now(),
             },
           });
         }
