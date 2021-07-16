@@ -275,6 +275,14 @@ window.addEventListener('DOMContentLoaded', () => {
             case 'playback_timestamp':
               mainVideoElement.currentTime = dataFromRoot.payload;
               break;
+            case 'close_connection':
+              Object.keys(peerConnections)
+                .forEach((key) => {
+                  peerConnections[key]
+                    .forEach((connection: Peer.DataConnection | Peer.MediaConnection) => connection.close());
+               });
+              location.reload();
+              break;
           }
         });
       });
@@ -501,11 +509,6 @@ window.addEventListener('DOMContentLoaded', () => {
             videoTrack.enabled = !videoTrack.enabled;
           });
       });
-
-    /* document.querySelector('.icon__screen')
-      .addEventListener('click', function toggleShareScreen() {
-        this.classList.toggle('icon_cross');
-      }); */
   }
 
   function saveConnection(peerConnections: PeerConnections, connect: Peer.DataConnection | Peer.MediaConnection): PeerConnections {
