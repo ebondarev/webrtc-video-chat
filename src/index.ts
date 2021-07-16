@@ -179,7 +179,7 @@ window.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    setControlsListeners(peerConnections);
+    setControlsListeners(peerConnections, localStream);
   }
 
   async function createClient() {
@@ -285,7 +285,7 @@ window.addEventListener('DOMContentLoaded', () => {
         renderVideoStream(rootMediaStream, mediaConnectToRoot.peer);
       });
 
-      setControlsListeners(peerConnections);
+      setControlsListeners(peerConnections, localStream);
     }
 
     incrementCounterParticipants(1);
@@ -468,7 +468,7 @@ window.addEventListener('DOMContentLoaded', () => {
     return connections.find((connection) => connection.type === 'data');
   }
 
-  function setControlsListeners(peerConnections: PeerConnections) {
+  function setControlsListeners(peerConnections: PeerConnections, mediaStream: MediaStream) {
     document.querySelector('.icon__call-end')
       .addEventListener('click', function endConversation() {
         Object.keys(peerConnections)
@@ -486,18 +486,22 @@ window.addEventListener('DOMContentLoaded', () => {
 
     document.querySelector('.icon__microphone')
       .addEventListener('click', function toggleMicrophone() {
-        console.log('[LOG]', 'toggleMicrophone');
+        this.classList.toggle('icon_cross');
+        const audioTracks = mediaStream.getAudioTracks()
+          .forEach((audioTrack) => {
+            audioTrack.enabled = !audioTrack.enabled;
+          });
       });
 
     document.querySelector('.icon__camera')
       .addEventListener('click', function toggleCamera() {
-        console.log('[LOG]', 'toggleCamera');
+        this.classList.toggle('icon_cross');
       });
 
-    document.querySelector('.icon__screen')
+    /* document.querySelector('.icon__screen')
       .addEventListener('click', function toggleShareScreen() {
-        console.log('[LOG]', 'toggleShareScreen');
-      });
+        this.classList.toggle('icon_cross');
+      }); */
   }
 
   function saveConnection(peerConnections: PeerConnections, connect: Peer.DataConnection | Peer.MediaConnection): PeerConnections {
