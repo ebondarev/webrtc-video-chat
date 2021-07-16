@@ -40,6 +40,15 @@ interface PeerConnections {
   [key: string]: (Peer.DataConnection | Peer.MediaConnection)[];
 }
 
+enum ConnectionDataTypes {
+  CLIENT_IDS = 'client_ids',
+  PLAYBACK_TIMESTAMP = 'playback_timestamp',
+  MESSAGE_LIST = 'message_list',
+  MESSAGE = 'message',
+  PLAYER_EVENT = 'player_event',
+  CLOSE_CONNECTION = 'close_connection',
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   const peerConnections: PeerConnections = {};
 
@@ -148,23 +157,23 @@ window.addEventListener('DOMContentLoaded', () => {
         Object.keys(peerConnections).forEach((clientId: string, index, arr) => {
           const listWithoutClientId = arr.filter((id) => id !== clientId);
           const dataConnection = getDataConnection(peerConnections[clientId]);
-          dataConnection.send({ type: 'client_ids', payload: listWithoutClientId });
-          dataConnection.send({ type: 'playback_timestamp', payload: mainVideoElement.currentTime });
+          dataConnection.send({ type: ConnectionDataTypes.CLIENT_IDS, payload: listWithoutClientId });
+          dataConnection.send({ type: ConnectionDataTypes.PLAYBACK_TIMESTAMP, payload: mainVideoElement.currentTime });
         });
 
-        clientDataConnection.send({ type: 'messages', payload: messages.list() });
+        clientDataConnection.send({ type: ConnectionDataTypes.MESSAGE_LIST, payload: messages.list() });
         messages.subscribe((message) => {
           clientDataConnection.send({
-            type: 'message',
+            type: ConnectionDataTypes.MESSAGE,
             payload: message,
           });
         });
 
         clientDataConnection.on('data', (data: any) => {
-          if (data.type === 'message') {
+          if (data.type === ConnectionDataTypes.MESSAGE) {
             messages.add(data.payload);
             renderMessage(data.payload, document.querySelector('.chat-messages') as HTMLElement);
-          } else if (data.type === 'close_connection') {
+          } else if (data.type === ConnectionDataTypes.CLOSE_CONNECTION) {
             const peerId: string = data.payload;
             const mediaConnectionId = (peerConnections[peerId].find((connection) => connection.type === 'media') as Peer.MediaConnection).peer;
             const videoElement = document.querySelector(`[data-stream-id="${mediaConnectionId}"]`);
@@ -221,7 +230,7 @@ window.addEventListener('DOMContentLoaded', () => {
       dataConnectToRoot.on('open', () => {
         dataConnectToRoot.on('data', (dataFromRoot: any) => {
           switch(dataFromRoot.type) {
-            case 'client_ids':
+            case ConnectionDataTypes.CLIENT_IDS:
               // Установить соединение с клиентами из пришедшего фида
               dataFromRoot.payload.forEach((id: string) => {
                 if (Object.keys(peerConnections).includes(id)) return;
@@ -229,15 +238,15 @@ window.addEventListener('DOMContentLoaded', () => {
                 peer.call(id, localStream);
               });
               break;
-            case 'messages':
+            case ConnectionDataTypes.MESSAGE_LIST:
               dataFromRoot.payload.forEach((message: Message) => {
                 renderMessage(message, document.querySelector('.chat-messages') as HTMLElement);
               });
               break;
-            case 'message':
+            case ConnectionDataTypes.MESSAGE:
               renderMessage(dataFromRoot.payload, document.querySelector('.chat-messages') as HTMLElement);
               break;
-            case 'player_event':
+            case ConnectionDataTypes.PLAYER_EVENT:
               if (mainVideoElement) {
                 const { eventType, playerCurrentTime, eventTimeStamp } = dataFromRoot.payload;
                 if (eventType === 'pause') {
@@ -252,30 +261,33 @@ window.addEventListener('DOMContentLoaded', () => {
                 } else if (eventType === 'waiting') {
                   mainVideoElement.pause();
                 } else if (eventType === 'timeupdate') {
-                  const latency = (Date.now() - eventTimeStamp) / 1000; // sec
-                  const currentTimeDiff = mainVideoElement.currentTime - playerCurrentTime + latency; // sec
-                  const slowPlaybackRate = 0.9;
-                  const normalPlaybackRate = 1.0
-                  const fastPlaybackRate = 1.1;
-                  if ((Math.abs(currentTimeDiff) < 0.5) && (mainVideoElement.playbackRate !== normalPlaybackRate)) {
-                    mainVideoElement.playbackRate = normalPlaybackRate;
-                  } if ((0.5 <= currentTimeDiff) && (currentTimeDiff < 2) && (mainVideoElement.playbackRate !== slowPlaybackRate)) {
-                    mainVideoElement.playbackRate = slowPlaybackRate;
-                  } else if ((-0.5 >= currentTimeDiff) && (currentTimeDiff > -2) && (mainVideoElement.playbackRate !== fastPlaybackRate)) {
-                    mainVideoElement.playbackRate = fastPlaybackRate;
-                  } else if (Math.abs(currentTimeDiff) >= 2) {
-                    mainVideoElement.currentTime = playerCurrentTime;
-                    if (mainVideoElement.playbackRate !== normalPlaybackRate) {
-                      mainVideoElement.playbackRate = normalPlaybackRate;
-                    }
+                  const currentTimeDiff = mainVideoElement.currentTime - playerCurrentTime;
+                  enum playbackRate {
+                    EXTRA_SLOW = 0.5,
+                    SLOW = 0.75,
+                    NORMAL = 1.0,
+                    FAST = 1.25,
+                    EXTRA_FAST = 1.5,
+                  };
+
+                  if ((Math.abs(currentTimeDiff) < 0.3) && (mainVideoElement.playbackRate !== playbackRate.NORMAL)) {
+                    mainVideoElement.playbackRate = playbackRate.NORMAL;
+                  } if ((0.3 <= currentTimeDiff) && (currentTimeDiff < 1.5) && (mainVideoElement.playbackRate !== playbackRate.SLOW)) {
+                    mainVideoElement.playbackRate = playbackRate.SLOW;
+                  } else if ((-0.3 >= currentTimeDiff) && (currentTimeDiff > -1.5) && (mainVideoElement.playbackRate !== playbackRate.FAST)) {
+                    mainVideoElement.playbackRate = playbackRate.FAST;
+                  } else if (currentTimeDiff >= 1.5) {
+                    mainVideoElement.playbackRate = playbackRate.EXTRA_SLOW;
+                  } else if (currentTimeDiff <= -1.5) {
+                    mainVideoElement.playbackRate = playbackRate.EXTRA_FAST;
                   }
                 }
               }
               break;
-            case 'playback_timestamp':
+            case ConnectionDataTypes.PLAYBACK_TIMESTAMP:
               mainVideoElement.currentTime = dataFromRoot.payload;
               break;
-            case 'close_connection':
+            case ConnectionDataTypes.CLOSE_CONNECTION:
               Object.keys(peerConnections)
                 .forEach((key) => {
                   peerConnections[key]
@@ -328,7 +340,7 @@ window.addEventListener('DOMContentLoaded', () => {
           || ((currentPeerType === 'Client') && ((dataConnection.metadata as any).peerType === 'Root'))
         ) {
           dataConnection.send({
-            type: 'player_event',
+            type: ConnectionDataTypes.PLAYER_EVENT,
             payload: {
               eventType: event.type,
               playerCurrentTime: player.currentTime,
@@ -387,7 +399,7 @@ window.addEventListener('DOMContentLoaded', () => {
           // Отправляет сообщение руту
           const connectToRoot = peer.connect(rootPeerId, { serialization: 'json' });
           connectToRoot.on('open', () => {
-            connectToRoot.send({ type: 'message', payload: message });
+            connectToRoot.send({ type: ConnectionDataTypes.MESSAGE, payload: message });
           });
         }
         (event.target as HTMLTextAreaElement).value = '';
@@ -484,7 +496,7 @@ window.addEventListener('DOMContentLoaded', () => {
             peerConnections[key]
               .forEach((connection: Peer.DataConnection | Peer.MediaConnection) => {
                 if (connection.type === 'data') {
-                  (connection as Peer.DataConnection).send({ type: 'close_connection', payload: peer.id });
+                  (connection as Peer.DataConnection).send({ type: ConnectionDataTypes.CLOSE_CONNECTION, payload: peer.id });
                 }
                 connection.close();
               });
