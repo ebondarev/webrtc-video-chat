@@ -496,6 +496,10 @@ window.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.icon__camera')
       .addEventListener('click', function toggleCamera() {
         this.classList.toggle('icon_cross');
+        const videoTracks = mediaStream.getVideoTracks()
+          .forEach((videoTrack) => {
+            videoTrack.enabled = !videoTrack.enabled;
+          });
       });
 
     /* document.querySelector('.icon__screen')
