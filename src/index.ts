@@ -179,7 +179,7 @@ window.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    setControlsListeners();
+    setControlsListeners(peerConnections);
   }
 
   async function createClient() {
@@ -285,7 +285,7 @@ window.addEventListener('DOMContentLoaded', () => {
         renderVideoStream(rootMediaStream, mediaConnectToRoot.peer);
       });
 
-      setControlsListeners();
+      setControlsListeners(peerConnections);
     }
 
     incrementCounterParticipants(1);
@@ -468,52 +468,36 @@ window.addEventListener('DOMContentLoaded', () => {
     return connections.find((connection) => connection.type === 'data');
   }
 
-  function setControlsListeners() {
+  function setControlsListeners(peerConnections: PeerConnections) {
     document.querySelector('.icon__call-end')
-      .addEventListener('click', () => {
-        endConversation(peerConnections);
+      .addEventListener('click', function endConversation() {
+        Object.keys(peerConnections)
+          .forEach((key) => {
+            peerConnections[key]
+              .forEach((connection: Peer.DataConnection | Peer.MediaConnection) => {
+                if (connection.type === 'data') {
+                  (connection as Peer.DataConnection).send({ type: 'close_connection', payload: peer.id });
+                }
+                connection.close();
+              });
+          });
         location.reload();
       });
 
     document.querySelector('.icon__microphone')
-      .addEventListener('click', () => {
-        toggleMicrophone();
+      .addEventListener('click', function toggleMicrophone() {
+        console.log('[LOG]', 'toggleMicrophone');
       });
 
     document.querySelector('.icon__camera')
-      .addEventListener('click', () => {
-        toggleCamera();
+      .addEventListener('click', function toggleCamera() {
+        console.log('[LOG]', 'toggleCamera');
       });
 
     document.querySelector('.icon__screen')
-      .addEventListener('click', () => {
-        toggleShareScreen();
+      .addEventListener('click', function toggleShareScreen() {
+        console.log('[LOG]', 'toggleShareScreen');
       });
-  }
-  
-  function endConversation(peerConnections: PeerConnections) {
-    Object.keys(peerConnections)
-      .forEach((key) => {
-        [ ...peerConnections[key] ]
-          .forEach((connection: Peer.DataConnection | Peer.MediaConnection) => {
-            if (connection.type === 'data') {
-              (connection as Peer.DataConnection).send({ type: 'close_connection', payload: peer.id });
-            }
-            connection.close();
-          });
-      });
-  }
-
-  function toggleMicrophone() {
-    console.log('[LOG]', 'toggleMicrophone');
-  }
-
-  function toggleCamera() {
-    console.log('[LOG]', 'toggleCamera');
-  }
-
-  function toggleShareScreen() {
-    console.log('[LOG]', 'toggleShareScreen');
   }
 
   function saveConnection(peerConnections: PeerConnections, connect: Peer.DataConnection | Peer.MediaConnection): PeerConnections {
