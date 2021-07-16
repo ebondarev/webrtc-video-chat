@@ -34,6 +34,26 @@ body {
   gap: 10px 20px;
 }
 
+.icon.main-video__volume {
+  display: none;
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  background-color: rgba(50, 50, 50, .5);
+}
+
+.video-messanger-container_client .main-video:hover .main-video__volume {
+  display: flex;
+}
+
+.main-video__volume-range_hide {
+  display: none;
+}
+
+.main-video {
+  position: relative;
+}
+
 .video-messanger-container_hidden {
   display: none;
 }

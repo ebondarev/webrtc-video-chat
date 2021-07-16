@@ -188,14 +188,16 @@ window.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    setControlsListeners(peerConnections, localStream);
+    setControlListeners(peerConnections, localStream, mainVideoElement);
   }
 
   async function createClient() {
     const localStream = await getLocalMediaStream();
 
     (document.querySelector('.choose-type') as HTMLElement).style.display = 'none';
-    (document.querySelector('.video-messanger-container') as HTMLElement).classList.remove('video-messanger-container_hidden');
+    const videoMessangerContainerElement = document.querySelector('.video-messanger-container') as HTMLElement;
+    videoMessangerContainerElement.classList.remove('video-messanger-container_hidden');
+    videoMessangerContainerElement.classList.add('video-messanger-container_client');
     (document.querySelector('.client-type') as HTMLElement).innerText = 'Client';
 
     const rootPeerId = (document.querySelector('.call-to__input') as HTMLInputElement).value;
@@ -216,8 +218,6 @@ window.addEventListener('DOMContentLoaded', () => {
     mainVideoElement.addEventListener('timeupdate', handleClientMainVideoTimeupdate);
     mainVideoElement.addEventListener('seeked', shareClientMainVideoEvents);
     mainVideoElement.addEventListener('waiting', shareClientMainVideoEvents); */
-    // mainVideoElement.addEventListener('waiting', shareClientMainVideoEvents);
-    // mainVideoElement.addEventListener('playing', shareClientMainVideoEvents);
 
     {
       /*
@@ -305,7 +305,7 @@ window.addEventListener('DOMContentLoaded', () => {
         renderVideoStream(rootMediaStream, mediaConnectToRoot.peer);
       });
 
-      setControlsListeners(peerConnections, localStream);
+      setControlListeners(peerConnections, localStream, mainVideoElement);
     }
 
     incrementCounterParticipants(1);
@@ -488,7 +488,7 @@ window.addEventListener('DOMContentLoaded', () => {
     return connections.find((connection) => connection.type === 'data');
   }
 
-  function setControlsListeners(peerConnections: PeerConnections, mediaStream: MediaStream) {
+  function setControlListeners(peerConnections: PeerConnections, mediaStream: MediaStream, mainVideoElement: HTMLMediaElement) {
     document.querySelector('.icon__call-end')
       .addEventListener('click', function endConversation() {
         Object.keys(peerConnections)
@@ -520,6 +520,16 @@ window.addEventListener('DOMContentLoaded', () => {
           .forEach((videoTrack) => {
             videoTrack.enabled = !videoTrack.enabled;
           });
+      });
+
+    const mainVideoVolumeRangeElement = document.querySelector('.main-video__volume-range');
+    mainVideoVolumeRangeElement.addEventListener('input', function handleChangeVolume() {
+      mainVideoElement.muted = false;
+      mainVideoElement.volume = this.value;
+    });
+    document.querySelector('.main-video__volume')
+      .addEventListener('click', function toggleVolumeRange() {
+        mainVideoVolumeRangeElement.classList.toggle('main-video__volume-range_hide');
       });
   }
 
