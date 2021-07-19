@@ -5,6 +5,7 @@ body {
   color: #fff;
   font-family: 'Roboto', sans-serif;
   min-height: 100vh;
+  padding-bottom: 10px;
 }
 
 .button {
@@ -116,6 +117,7 @@ body {
   grid-template-rows: auto 1fr 55px;
   border-radius: 3px;
   row-gap: 5px;
+  min-height: 160px;
 }
 
 .chat-info {
@@ -321,4 +323,34 @@ body {
 
 .popup__title {
   margin-bottom: 10px;
+}
+
+@media screen and (max-width: 1024px) {
+  body {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .create-root__btn {
+    width: 100%;
+  }
+
+  .input-with-button__label {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 667px) {
+  .video-messanger-container {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "client-type"
+      "video-container"
+      "footer"
+      "aside";
+  }
+
+  .chat {
+    max-height: 100vh;
+  }
 }
