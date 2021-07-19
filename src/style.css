@@ -204,10 +204,20 @@ body {
   max-width: 100%;
 }
 
+.chat-messages-container {
+  position: relative;
+}
+
 .chat-messages {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  overflow: auto;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
 }
 
 .chat-messages__message {

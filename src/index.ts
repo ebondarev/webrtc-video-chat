@@ -464,6 +464,7 @@ window.addEventListener('DOMContentLoaded', () => {
       },
     };
     container.insertAdjacentHTML('beforeend', templates[message.type](message));
+    container.scrollTop = container.scrollHeight;
   }
 
   function htmlEscape(strings: string | string[], ...values: any) {
