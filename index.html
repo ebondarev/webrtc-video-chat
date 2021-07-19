@@ -7,6 +7,12 @@
 </head>
 
 <body>
+  <div class="error" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); background-color: #fff; color: #f00; font-size: 20px;"></div>
+  <script>
+    window.addEventListener('error', function(error) {
+        document.querySelector('.error').innerText += '\n' + JSON.stringify(error.message);
+    });
+  </script>
   <h1 class="peer-id"></h1>
 
   <!-- Step one -->
