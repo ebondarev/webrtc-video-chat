@@ -522,14 +522,21 @@ window.addEventListener('DOMContentLoaded', () => {
           });
       });
 
-    const mainVideoVolumeRangeElement = document.querySelector('.main-video__volume-range');
-    mainVideoVolumeRangeElement.addEventListener('input', function handleChangeVolume() {
-      mainVideoElement.muted = false;
-      mainVideoElement.volume = this.value;
-    });
+    const mainVideoVolumeRangeElement = document.querySelector('.main-video__volume .range');
     document.querySelector('.main-video__volume')
-      .addEventListener('click', function toggleVolumeRange() {
-        mainVideoVolumeRangeElement.classList.toggle('main-video__volume-range_hide');
+      .addEventListener('click', function toggleVolumeRange(event) {
+        if ((event.target === mainVideoVolumeRangeElement) || mainVideoVolumeRangeElement.contains(event.target as Node)) return;
+        this.classList.toggle('main-video__volume_shift');
+        mainVideoVolumeRangeElement.classList.toggle('range_hide');
+      });
+    mainVideoVolumeRangeElement
+      .addEventListener('click', function (event: MouseEvent) {
+        const rangeStripElement = this.querySelector('.range__strip');
+        rangeStripElement.style.width = `${event.offsetX}px`;
+        if (mainVideoElement.muted) {
+          mainVideoElement.muted = false;
+        }
+        mainVideoElement.volume = event.offsetX / mainVideoVolumeRangeElement.clientWidth;
       });
   }
 

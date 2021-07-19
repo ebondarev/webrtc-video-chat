@@ -42,11 +42,47 @@ body {
   background-color: rgba(50, 50, 50, .5);
 }
 
+.icon.main-video__volume_shift {
+  right: 140px;
+}
+
 .video-messanger-container_client .main-video:hover .main-video__volume {
   display: flex;
 }
 
-.main-video__volume-range_hide {
+.range {
+  position: absolute;
+  left: calc(100% + 15px);
+  top: 50%;
+  width: 100px;
+  height: 4px;
+  border: 1px solid #353744;
+  transform: translateY(-50%);
+  border-radius: 2px;
+}
+
+.range__strip {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  max-width: 100%;
+  background-color: #353744;
+}
+
+.range__point {
+  width: 10px;
+  height: 10px;
+  background-color: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translate(50%, -50%);
+}
+
+.range_hide {
   display: none;
 }
 
