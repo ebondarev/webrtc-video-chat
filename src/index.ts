@@ -233,6 +233,10 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   async function createClient() {
+    // Временно скрыл
+    (document.querySelector('.peer-id') as HTMLElement).style.display = 'none';
+    (document.querySelector('.client-type') as HTMLElement).style.display = 'none';
+
     const localStream = await getLocalMediaStream();
 
     (document.querySelector('.choose-type') as HTMLElement).style.display = 'none';
