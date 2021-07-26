@@ -106,39 +106,52 @@ window.addEventListener('DOMContentLoaded', () => {
     },
     debug: 1,
   });
-  peer.on('open', function fetchPeerId(id: string) {
-    (document.querySelector('.peer-id') as HTMLElement).innerText = id;
-  });
+
+  const isClientMode = new URL(location.toString()).searchParams.has('room-id');
 
   // Popup
   const collectUserDataInputElement: HTMLInputElement = document.querySelector('.collect-user-data__input');
+  const collectUserDataButtonElement: HTMLButtonElement = document.querySelector('.collect-user-data__btn');
   collectUserDataInputElement.focus();
-  collectUserDataInputElement.addEventListener('keydown', (e: Event) => {
-    const event = e as KeyboardEvent;
-    if (event.code?.toLowerCase() !== 'enter') return;
-    event.preventDefault();
-    applyUserName(user, collectUserDataInputElement);
+  collectUserDataInputElement.addEventListener('input', (event) => {
+    collectUserDataButtonElement.disabled = (event.target as HTMLInputElement).value.length === 0;
   });
-  document.querySelector('.collect-user-data__btn').addEventListener('click', () => {
+  collectUserDataInputElement.addEventListener('keydown', (event: Event) => {
+    const _event = event as KeyboardEvent;
+    if (_event.code?.toLowerCase() !== 'enter') return;
+    _event.preventDefault();
     applyUserName(user, collectUserDataInputElement);
+    createClientOrShowButtonToCreateRoot();
+  });
+  collectUserDataButtonElement.addEventListener('click', (event) => {
+    applyUserName(user, collectUserDataInputElement);
+    createClientOrShowButtonToCreateRoot();
   });
 
-  // Create Root
-  document.querySelector('.create-root__btn')?.addEventListener('click', createRoot);
+  if (!isClientMode) {
+    // Create Root
+    document.querySelector('.create-root__btn')?.addEventListener('click', createRoot);
+  }
 
-  // Create Client
-  document.querySelector('.call-to__input')?.addEventListener('keydown', (e: Event) => {
-    const event = e as KeyboardEvent;
-    if (event.code?.toLowerCase() !== 'enter') return;
-    event.preventDefault();
-    createClient();
-  });
-  document.querySelector('.call-to__btn')?.addEventListener('click', createClient);
 
 
   /* ***************** FUNCTIONS ***************** */
 
   async function createRoot() {
+    const pageLocation = new URL(location.toString());
+    pageLocation.searchParams.append('room-id', peer.id);
+    (document.querySelector('.peer-id') as HTMLElement).innerText = pageLocation.toString();
+    const copyRoomPathButton: HTMLElement = document.querySelector('.copy-room-path');
+    copyRoomPathButton.addEventListener('click', () => {
+      navigator.clipboard.writeText(pageLocation.toString())
+        .then(() => console.log('Ok!'))
+        .catch((error) => console.log('Error!', error));
+      copyRoomPathButton.innerText = 'Copied!';
+      setTimeout(() => {
+        copyRoomPathButton.innerText = 'Copy';
+      }, 1500);
+    });
+
     const localStream = await getLocalMediaStream();
 
     (document.querySelector('.choose-type') as HTMLElement).style.display = 'none';
@@ -228,7 +241,7 @@ window.addEventListener('DOMContentLoaded', () => {
     videoMessangerContainerElement.classList.add('video-messanger-container_client');
     (document.querySelector('.client-type') as HTMLElement).innerText = 'Client';
 
-    const rootPeerId = (document.querySelector('.call-to__input') as HTMLInputElement).value;
+    const rootPeerId = new URL(location.toString()).searchParams.get('room-id');
 
     const mainVideoElement = renderMainVideo(
       document.querySelector('.main-video') as HTMLElement,
@@ -238,14 +251,6 @@ window.addEventListener('DOMContentLoaded', () => {
         controls: false,
       }
     );
-    // const shareClientMainVideoEvents = shareMainVideoEvents.bind(null, mainVideoElement, 'Client', null);
-    /* const handleClientMainVideoTimeupdate = throttle(1000, shareClientMainVideoEvents);
-    mainVideoElement.addEventListener('pause', shareClientMainVideoEvents);
-    mainVideoElement.addEventListener('play', shareClientMainVideoEvents);
-    mainVideoElement.addEventListener('playing', shareClientMainVideoEvents);
-    mainVideoElement.addEventListener('timeupdate', handleClientMainVideoTimeupdate);
-    mainVideoElement.addEventListener('seeked', shareClientMainVideoEvents);
-    mainVideoElement.addEventListener('waiting', shareClientMainVideoEvents); */
 
     {
       /*
@@ -297,7 +302,6 @@ window.addEventListener('DOMContentLoaded', () => {
                     FAST = 1.25,
                     EXTRA_FAST = 1.5,
                   };
-
                   if ((Math.abs(currentTimeDiff) < 0.3) && (mainVideoElement.playbackRate !== playbackRate.NORMAL)) {
                     mainVideoElement.playbackRate = playbackRate.NORMAL;
                   } if ((0.3 <= currentTimeDiff) && (currentTimeDiff < 1.5) && (mainVideoElement.playbackRate !== playbackRate.SLOW)) {
@@ -321,7 +325,7 @@ window.addEventListener('DOMContentLoaded', () => {
                   peerConnections[key]
                     .forEach((connection: Peer.DataConnection | Peer.MediaConnection) => connection.close());
                });
-              location.reload();
+              location.replace(location.origin);
               break;
           }
         });
@@ -352,6 +356,15 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     initChat(messages, document.querySelector('.chat-messages') as HTMLElement, 'client', rootPeerId);
+  }
+
+  function createClientOrShowButtonToCreateRoot() {
+    if (isClientMode) {
+      // Create Client
+      createClient();
+    } else {
+      (document.querySelector('.create-root__btn') as HTMLElement).classList.remove('create-root__btn_hide');
+    }
   }
 
   function shareMainVideoEvents(
@@ -530,7 +543,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 connection.close();
               });
           });
-        location.reload();
+        location.replace(location.origin);
       });
 
     document.querySelector('.icon__microphone')

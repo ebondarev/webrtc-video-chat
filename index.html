@@ -7,20 +7,21 @@
 </head>
 
 <body>
-  <h1 class="peer-id"></h1>
+  <div class="peer-id"></div>
+  <button class="copy-room-path button">Copy</button>
 
   <!-- Step one -->
   <div class="choose-type">
     <div class="create-root">
-      <button class="create-root__btn button">Create Root</button>
+      <button class="create-root__btn create-root__btn_hide button">Create Root</button>
     </div>
 
-    <div class="call-to input-with-button">
+    <!-- <div class="call-to input-with-button">
       <label for="call-to__input" class="call-to__label input-with-button__label">
         <input type="text" id="call-to__input" class="call-to__input input-with-button__input">
       </label>
       <button class="call-to__btn button input-with-button__button">Call</button>
-    </div>
+    </div> -->
   </div>
 
   <!-- Step two -->
@@ -97,7 +98,7 @@
         <label for="collect-user-data__input" class="collect-user-data__label input-with-button__label">
           <input type="text" id="collect-user-data__input" class="collect-user-data__input input-with-button__input">
         </label>
-        <button class="collect-user-data__btn button input-with-button__button">Apply</button>
+        <button class="collect-user-data__btn button input-with-button__button" disabled>Apply</button>
       </div>
     </div>
   </div>
