@@ -285,7 +285,7 @@ window.addEventListener('DOMContentLoaded', () => {
               break;
             case ConnectionDataTypes.PLAYER_EVENT:
               if (mainVideoElement) {
-                const { eventType, playerCurrentTime, eventTimeStamp } = dataFromRoot.payload;
+                const { eventType, playerCurrentTime } = dataFromRoot.payload;
                 if (eventType === 'pause') {
                   const isVideoBuffering = mainVideoElement.networkState === mainVideoElement.NETWORK_LOADING;
                   if (isVideoBuffering === false) {
@@ -312,10 +312,12 @@ window.addEventListener('DOMContentLoaded', () => {
                     mainVideoElement.playbackRate = playbackRate.SLOW;
                   } else if ((-0.3 >= currentTimeDiff) && (currentTimeDiff > -1.5) && (mainVideoElement.playbackRate !== playbackRate.FAST)) {
                     mainVideoElement.playbackRate = playbackRate.FAST;
-                  } else if (currentTimeDiff >= 1.5) {
+                  } else if (currentTimeDiff >= 1.5 && currentTimeDiff < 2.5) {
                     mainVideoElement.playbackRate = playbackRate.EXTRA_SLOW;
-                  } else if (currentTimeDiff <= -1.5) {
+                  } else if (currentTimeDiff <= -1.5 && currentTimeDiff > -2.5) {
                     mainVideoElement.playbackRate = playbackRate.EXTRA_FAST;
+                  } else {
+                    mainVideoElement.currentTime = playerCurrentTime;
                   }
                 }
               }
