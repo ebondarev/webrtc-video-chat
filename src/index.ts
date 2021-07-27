@@ -140,7 +140,9 @@ window.addEventListener('DOMContentLoaded', () => {
   async function createRoot() {
     const pageLocation = new URL(location.toString());
     pageLocation.searchParams.append('room-id', peer.id);
-    (document.querySelector('.peer-id') as HTMLElement).innerText = pageLocation.toString();
+    const peerIdElement = document.querySelector('.peer-id') as HTMLElement;
+    peerIdElement.innerText = pageLocation.toString();
+    peerIdElement.classList.remove('peer-id_hide');
     const copyRoomPathButton: HTMLElement = document.querySelector('.copy-room-path');
     copyRoomPathButton.addEventListener('click', () => {
       navigator.clipboard.writeText(pageLocation.toString())
@@ -156,7 +158,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
     (document.querySelector('.choose-type') as HTMLElement).style.display = 'none';
     (document.querySelector('.video-messanger-container') as HTMLElement).classList.remove('video-messanger-container_hidden');
-    (document.querySelector('.client-type') as HTMLElement).innerText = 'Root';
 
     // Мьют локального стрима чтобы избавиться от эхо
     renderVideoStream(localStream, peer.id, { isMuted: true });
@@ -230,20 +231,23 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     setControlListeners(peerConnections, localStream, mainVideoElement);
+
+    const popupWaitingListElement = document.querySelector('.popup-waiting-list');
+    document.querySelector('.toggle-waiting-list__button').addEventListener('click', () => {
+      popupWaitingListElement.classList.toggle('popup_hide');
+    });
+    document.querySelector('.popup-waiting-list .popup__background').addEventListener('click', () => {
+      popupWaitingListElement.classList.add('popup_hide');
+    });
   }
 
   async function createClient() {
-    // Временно скрыл
-    (document.querySelector('.peer-id') as HTMLElement).style.display = 'none';
-    (document.querySelector('.client-type') as HTMLElement).style.display = 'none';
-
     const localStream = await getLocalMediaStream();
 
     (document.querySelector('.choose-type') as HTMLElement).style.display = 'none';
     const videoMessangerContainerElement = document.querySelector('.video-messanger-container') as HTMLElement;
     videoMessangerContainerElement.classList.remove('video-messanger-container_hidden');
     videoMessangerContainerElement.classList.add('video-messanger-container_client');
-    (document.querySelector('.client-type') as HTMLElement).innerText = 'Client';
 
     const rootPeerId = new URL(location.toString()).searchParams.get('room-id');
 
@@ -401,7 +405,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function applyUserName(user: User, input: HTMLInputElement) {
     const userName = input.value;
     user.name = userName;
-    document.querySelector('.popup').classList.add('popup_hide');
+    document.querySelector('.popup-user-data').classList.add('popup_hide');
   }
 
   function incrementCounterParticipants(increment: number) {

@@ -7,7 +7,7 @@
 </head>
 
 <body>
-  <div class="peer-id"></div>
+  <div class="peer-id peer-id_hide"></div>
   <button class="copy-room-path button">Copy</button>
 
   <!-- Step one -->
@@ -26,7 +26,10 @@
 
   <!-- Step two -->
   <div class="video-messanger-container video-messanger-container_hidden">
-    <h2 class="client-type"></h2>
+    <div class="toggle-waiting-list">
+      <button class="button toggle-waiting-list__button">Waiting list</button>
+    </div>
+
     <section class="video-container">
       <div class="users-video"></div>
       <div class="main-video">
@@ -89,8 +92,25 @@
     </footer>
   </div>
 
+  <!-- Popup waiting list -->
+  <div class="popup popup_hide popup-waiting-list">
+    <div class="popup__background"></div>
+    <div class="popup__content">
+      <div class="popup__title">Show waiting list:</div>
+      <ul class="waiting-list">
+        <li class="waiting-list-item">
+          <div class="waiting-list-item__name">Name</div>
+          <div class="waiting-list-item__controls">
+            <button class="button" title="Add">Add</button>
+            <button class="button button_danger" title="Remove">Remove</button>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
   <!-- Popup user data -->
-  <div class="popup">
+  <div class="popup popup-user-data">
     <div class="popup__background"></div>
     <div class="popup__content">
       <div class="popup__title">Enter your name:</div>
