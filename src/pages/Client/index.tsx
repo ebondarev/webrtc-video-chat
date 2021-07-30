@@ -23,7 +23,7 @@ interface Props {}
 
 export const Client: React.FC<Props> = () => {
 	const [usersVideo, setUsersVideo] = React.useState<MediaStream[]>([]);
-	const [establishedDataConnections/* , setEstablishedDataConnections */] = React.useState<Peer.DataConnection[]>([]);
+	const [otherClientsDataConnections, setOtherClientsDataConnections] = React.useState<Peer.DataConnection[]>([]);
 	const [messages, setMessages] = React.useState<Message[]>([]);
 
 	const rootPeerIdRef = React.useRef(new URL(window.location.toString()).searchParams.get('room-id'));
@@ -36,17 +36,21 @@ export const Client: React.FC<Props> = () => {
 
 	React.useEffect(() => {
 		// Set data connection to root
-		if (peer && rootPeerIdRef.current) {
+		if (peer && rootPeerIdRef.current && localStream) {
 			dataConnectionToRootRef.current = peer.connect(rootPeerIdRef.current, {serialization: 'json'});
 			dataConnectionToRootRef.current.on('open', () => {
 				dataConnectionToRootRef.current?.on('data', (dataFromRoot: any) => {
 					switch(dataFromRoot.type) {
             case ConnectionDataTypes.CLIENT_IDS:
-              // Установить соединение с клиентами из пришедшего фида
-              dataFromRoot.payload.forEach((id: string) => {
-								if (establishedDataConnections.some((connection) => connection.peer === id)) return;
+							console.log('[LOG]', 'ConnectionDataTypes.CLIENT_IDS from Root', dataFromRoot.payload);
+              // Установить соединение с клиентами из пришедшего фида с которыми оно ещё не было установлено
+							dataFromRoot.payload
+								.filter((id: string) => otherClientsDataConnections.every((connection) => connection.peer !== id))
+								.forEach((id: string) => {console.log('[LOG]', 'call id', id); peer.call(id, localStream!);});
+              /*dataFromRoot.payload.forEach((id: string) => {
+								if (otherClientsDataConnections.some((connection) => connection.peer === id)) return;
                 peer.call(id, localStream!);
-              });
+              });*/
               break;
             case ConnectionDataTypes.MESSAGE_LIST:
 							setMessages((messages) => [...messages, ...dataFromRoot.payload]);
@@ -111,7 +115,9 @@ export const Client: React.FC<Props> = () => {
 				})
 			})
 		}
-	}, [peer, establishedDataConnections, localStream]);
+		// Если в список зависимостей добавить otherClientsDataConnections, то хук будет вызываться чаще чем нужно
+		// Хук должен вызываться один раз когда peer и localStream не undefined
+	}, [peer, /* otherClientsDataConnections,  */localStream]);
 
 	React.useEffect(() => {
 		// Set media connection to root
@@ -133,6 +139,29 @@ export const Client: React.FC<Props> = () => {
 		setUsersVideo((currentValue) => [localStream, ...currentValue]);
 	}, [localStream]);
 
+	/*React.useEffect(() => {
+		// Get media connect from another clients
+		if ((peer === undefined) || (localStream === undefined)) return;
+		peer.on('call', (call) => {
+			console.log('[LOG]', 'answer another client');
+			call.answer(localStream);
+		});
+	}, [peer, localStream]);*/
+
+	function getNumberParticipants(): number {
+		let number = otherClientsDataConnections.length;
+		if (dataConnectionToRootRef.current) {
+			number += 1;
+		}
+		return number + 1;
+	}
+
+	function handleNewMessage(message: Message) {
+		dataConnectionToRootRef.current?.send({type: ConnectionDataTypes.MESSAGE, payload: message});
+		otherClientsDataConnections.forEach((connection) => connection.send({type: ConnectionDataTypes.MESSAGE, payload: message}));
+		setMessages((messages) => [...messages, message]);
+	}
+
 	return (
 		<VideoMessangerContainer>
 			<VideoContainer>
@@ -141,9 +170,9 @@ export const Client: React.FC<Props> = () => {
 			</VideoContainer>
 
 			<Aside>
-				<Chat numberParticipants={establishedDataConnections.length + 1}
+				<Chat numberParticipants={getNumberParticipants()}
 					messages={messages}
-					handleNewMessage={(message: Message) => setMessages((messages) => [...messages, message])} />
+					handleNewMessage={handleNewMessage} />
 			</Aside>
 
 			<Footer />

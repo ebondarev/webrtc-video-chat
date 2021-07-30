@@ -41,7 +41,7 @@ export function Root() {
 		const pageLocation = new URL(`${window.location.origin}/client`);
 		pageLocation.searchParams.append('room-id', peer.id);
 		setLinkToConnectToRoot(pageLocation.toString());
-	}, [peer, peer?.id]);
+	}, [peer]);
 
 	React.useEffect(() => {
 		// Revert buttonCopyText
@@ -54,63 +54,98 @@ export function Root() {
 
 	React.useEffect(() => {
 		// Handle MediaStream from clients
-		if (peer === undefined) return;
+		if ((peer === undefined) || (localStream === undefined)) return;
 		peer.on('call', (clientMediaConnection) => {
+			console.log('[LOG]', 'call');
 			setClientsMediaConnection([...clientsMediaConnection, clientMediaConnection]);
 			clientMediaConnection.answer(localStream);
 			clientMediaConnection.on('stream', (clientStream) => {
-				setUsersVideo([...usersVideo, clientStream]);
+				setUsersVideo((usersVideo) => {
+					if (usersVideo.some((stream) => stream.id === clientStream.id)) return usersVideo;
+					return [...usersVideo, clientStream];
+				});
 			});
 			clientMediaConnection.on('close', () => {
 				// Firefox does not yet support this event.
 				console.log('[LOG]', 'close media connection');
 			});
 		});
-	}, [peer, clientsMediaConnection, localStream, usersVideo]);
+		// Если в список зависимостей добавить clientsMediaConnection и usersVideo, то хук будет вызываться чаще чем нужно
+		// Хук должен вызываться один раз когда peer и localStream не undefined
+	}, [peer, localStream/* , clientsMediaConnection, usersVideo */]);
 
 	React.useEffect(() => {
 		// Handle DataStream from clients
 		if (peer === undefined) return;
 		peer.on('connection', (clientDataConnection) => {
-      clientDataConnection.on('open', () => {
+			clientDataConnection.on('open', () => {
+				/*console.log('[LOG]', 'clientsDataConnection', clientsDataConnection);
 				clientsDataConnection.forEach((connection, index, arr) => {
-          connection.send({type: ConnectionDataTypes.CLIENT_IDS, payload: arr.map((connection) => connection.peer)});
-          connection.send({type: ConnectionDataTypes.PLAYBACK_TIMESTAMP, payload: mainVideoRef.current?.currentTime ?? 0});
+					connection.send({type: ConnectionDataTypes.CLIENT_IDS, payload: arr.map((connection) => connection.peer)});
+					connection.send({type: ConnectionDataTypes.PLAYBACK_TIMESTAMP, payload: mainVideoRef.current?.currentTime ?? 0});
 				});
+				clientDataConnection.send({type: ConnectionDataTypes.CLIENT_IDS, payload: clientsDataConnection.map((connection) => connection.peer)});
+				clientDataConnection.send({type: ConnectionDataTypes.PLAYBACK_TIMESTAMP, payload: mainVideoRef.current?.currentTime ?? 0});
 
-        clientDataConnection.send({ type: ConnectionDataTypes.MESSAGE_LIST, payload: messages });
-
-        clientDataConnection.on('data', (data: any) => {
-          if (data.type === ConnectionDataTypes.MESSAGE) {
+				clientDataConnection.send({ type: ConnectionDataTypes.MESSAGE_LIST, payload: messages });
+				*/
+				clientDataConnection.on('data', (data: any) => {
+					if (data.type === ConnectionDataTypes.MESSAGE) {
 						setMessages((messages) => [...messages, data.payload]);
-          } else if (data.type === ConnectionDataTypes.CLOSE_CONNECTION) {
+					} else if (data.type === ConnectionDataTypes.CLOSE_CONNECTION) {
 						setClientsDataConnection(
 							clientsDataConnection.filter((connection) => connection.peer !== clientDataConnection.peer)
 						);
 						setClientsMediaConnection(
 							clientsMediaConnection.filter((connection) => connection.peer !== clientDataConnection.peer)
 						);
-          }
-        });
-      });
-      clientDataConnection.on('close', () => {
-        // Firefox does not yet support this event.
-        console.log('[LOG]', 'close data connection');
-      });
-			setClientsDataConnection([...clientsDataConnection, clientDataConnection]);
-    });
-	}, [peer, clientsDataConnection, clientsMediaConnection, messages]);
+					}
+				});
+			});
+			clientDataConnection.on('close', () => {
+				// Firefox does not yet support this event.
+				console.log('[LOG]', 'close data connection');
+			});
+			setClientsDataConnection((connections) => {
+				if (connections.some((connect) => connect.peer === clientDataConnection.peer)) return connections;
+				console.log('[LOG]', 'add clientDataConnection');
+				return [...connections, clientDataConnection];
+			});
+		});
+	}, [peer/* , clientsDataConnection, clientsMediaConnection, messages */]);
+
+	React.useEffect(() => {
+		// Notify clients about changes in clients
+		clientsDataConnection.forEach((connection, index) => {
+			console.log('[LOG]', 'send clients ids another clients', clientsDataConnection.filter((_connection) => _connection.peer !== connection.peer).map((_connection) => _connection.peer));
+			connection.send({
+				type: ConnectionDataTypes.CLIENT_IDS,
+				payload: clientsDataConnection
+					.filter((_connection) => _connection.peer !== connection.peer)
+					.map((_connection) => _connection.peer)
+			});
+			connection.send({
+				type: ConnectionDataTypes.PLAYBACK_TIMESTAMP,
+				payload: mainVideoRef.current?.currentTime ?? 0
+			});
+		});
+	}, [clientsDataConnection]);
 
 	function handleClickShareRoomButton() {
 		setButtonCopyText('Copied');
 		navigator.clipboard.writeText(linkToConnectToRoot)
 			.then(() => console.log('Ok!'))
-			.catch((error) => console.log('Error!', error));		
+			.catch((error) => console.log('Error!', error));
 	}
 
 	function handleNewMessage(message: Message) {
 		clientsDataConnection.forEach((connection) => connection.send({type: ConnectionDataTypes.MESSAGE, payload: message}));
 		setMessages((messages) => [...messages, message]);
+	}
+
+	function getNumberParticipants(): number {
+		let number = clientsDataConnection.length;
+		return number + 1;
 	}
 
 	return (
@@ -133,7 +168,7 @@ export function Root() {
 				</VideoContainer>
 
 				<Aside>
-					<Chat numberParticipants={clientsDataConnection.length + 1}
+					<Chat numberParticipants={getNumberParticipants()}
 						messages={messages}
 						handleNewMessage={handleNewMessage} />
 				</Aside>
