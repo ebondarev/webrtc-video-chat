@@ -1,57 +1,147 @@
 import React from "react";
+import { Aside } from "../../components/Aside";
 import { Button } from "../../components/Button";
+import { Chat, Message } from "../../components/Chat";
+import { Footer } from "../../components/Footer";
+import { MainVideo } from "../../components/MainVideo";
+import { Popup } from "../../components/Popup";
+import { UsersVideo } from "../../components/UsersVideo";
+import { VideoContainer } from "../../components/VideoContainer";
+import { VideoMessangerContainer } from "../../components/VideoMessangerContainer";
+import { WaitingList } from "../../components/WaitingList";
+import { useLocalMediaStream } from "../../hooks/useLocalMediaStream";
+import { usePeer } from "../../hooks/usePeer";
+import Peer from "../../vendor/peerjs";
+import { ConnectionDataTypes } from "../Client";
 import s from './style.module.css';
 
 export function Root() {
+	const [linkToConnectToRoot, setLinkToConnectToRoot] = React.useState('');
+	const [buttonCopyText, setButtonCopyText] = React.useState('Copy');
+	const [usersVideo, setUsersVideo] = React.useState<MediaStream[]>([]);
+	const [isShowWaitingListPopup, setIsShowWaitingListPopup] = React.useState(false);
+	const [messages, setMessages] = React.useState<Message[]>([]);
+	const [clientsMediaConnection, setClientsMediaConnection] = React.useState<Peer.MediaConnection[]>([]);
+	const [clientsDataConnection, setClientsDataConnection] = React.useState<Peer.DataConnection[]>([]);
+
+	const mainVideoRef = React.useRef<HTMLVideoElement>(null);
+
+	const localStream = useLocalMediaStream();
+	const peer = usePeer();
+
+	React.useEffect(() => {
+		// Add localStream to usersVideo
+		if (localStream === undefined) return;
+		setUsersVideo((currentValue) => [localStream, ...currentValue]);
+	}, [localStream]);
+
+	React.useEffect(() => {
+		// Set text of linkToConnectToRoot
+		if (peer === undefined) return;
+		const pageLocation = new URL(`${window.location.origin}/client`);
+		pageLocation.searchParams.append('room-id', peer.id);
+		setLinkToConnectToRoot(pageLocation.toString());
+	}, [peer, peer?.id]);
+
+	React.useEffect(() => {
+		// Revert buttonCopyText
+		if (buttonCopyText === 'Copied') {
+			setTimeout(() => {
+				setButtonCopyText('Copy');
+			}, 1500);
+		}
+	}, [buttonCopyText]);
+
+	React.useEffect(() => {
+		// Handle MediaStream from clients
+		if (peer === undefined) return;
+		peer.on('call', (clientMediaConnection) => {
+			setClientsMediaConnection([...clientsMediaConnection, clientMediaConnection]);
+			clientMediaConnection.answer(localStream);
+			clientMediaConnection.on('stream', (clientStream) => {
+				setUsersVideo([...usersVideo, clientStream]);
+			});
+			clientMediaConnection.on('close', () => {
+				// Firefox does not yet support this event.
+				console.log('[LOG]', 'close media connection');
+			});
+		});
+	}, [peer, clientsMediaConnection, localStream, usersVideo]);
+
+	React.useEffect(() => {
+		// Handle DataStream from clients
+		if (peer === undefined) return;
+		peer.on('connection', (clientDataConnection) => {
+      clientDataConnection.on('open', () => {
+				clientsDataConnection.forEach((connection, index, arr) => {
+          connection.send({type: ConnectionDataTypes.CLIENT_IDS, payload: arr.map((connection) => connection.peer)});
+          connection.send({type: ConnectionDataTypes.PLAYBACK_TIMESTAMP, payload: mainVideoRef.current?.currentTime ?? 0});
+				});
+
+        clientDataConnection.send({ type: ConnectionDataTypes.MESSAGE_LIST, payload: messages });
+
+        clientDataConnection.on('data', (data: any) => {
+          if (data.type === ConnectionDataTypes.MESSAGE) {
+						setMessages((messages) => [...messages, data.payload]);
+          } else if (data.type === ConnectionDataTypes.CLOSE_CONNECTION) {
+						setClientsDataConnection(
+							clientsDataConnection.filter((connection) => connection.peer !== clientDataConnection.peer)
+						);
+						setClientsMediaConnection(
+							clientsMediaConnection.filter((connection) => connection.peer !== clientDataConnection.peer)
+						);
+          }
+        });
+      });
+      clientDataConnection.on('close', () => {
+        // Firefox does not yet support this event.
+        console.log('[LOG]', 'close data connection');
+      });
+			setClientsDataConnection([...clientsDataConnection, clientDataConnection]);
+    });
+	}, [peer, clientsDataConnection, clientsMediaConnection, messages]);
+
+	function handleClickShareRoomButton() {
+		setButtonCopyText('Copied');
+		navigator.clipboard.writeText(linkToConnectToRoot)
+			.then(() => console.log('Ok!'))
+			.catch((error) => console.log('Error!', error));		
+	}
+
+	function handleNewMessage(message: Message) {
+		clientsDataConnection.forEach((connection) => connection.send({type: ConnectionDataTypes.MESSAGE, payload: message}));
+		setMessages((messages) => [...messages, message]);
+	}
+
 	return (
-		<div className={s['video-messanger-container']}>
-			<div className={s['toggle-waiting-list']}>
-				<Button onClick={() => { }}>Waiting list</Button>
-			</div>
+		<>
+			<VideoMessangerContainer>
+				{linkToConnectToRoot && <div className={s['share-room']}>
+					<Button onClick={handleClickShareRoomButton}>{buttonCopyText}</Button>
+					<div className={s['share-room__link']}>{linkToConnectToRoot}</div>
+				</div>}
 
-			<section className={s['video-container']}>
-				<div className={s['users-video']}></div>
-				<div className={s['main-video']}>
-					<div className={`${s['icon']} ${s['main-video__volume']}`}>
-						<svg height="24" viewBox="0 0 24 24" width="24"><polygon fill="none" points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" /></svg>
-						<input type="range" />
-					</div>
+				<div className={s['toggle-waiting-list']}>
+					<Button onClick={() => setIsShowWaitingListPopup(true)}>
+						Waiting list
+					</Button>
 				</div>
-			</section>
 
-			<aside className={s['aside']}>
-				<div className={s['chat']}>
-					<div className={s['chat-info']}>
-						<div className={s['chat-info__title']}>Party Chat</div>
-						<div className={s['chat-info__participants']}><span>1</span> Participants</div>
-					</div>
-					<div className={s['chat-messages-container']}>
-						<div className={s['chat-messages']}></div>
-					</div>
-					<div className={s['chat-textarea']}>
-						<textarea className={s['chat-textarea__input-area']}></textarea>
-					</div>
-				</div>
-			</aside>
+				<VideoContainer>
+					<UsersVideo streams={usersVideo} />
+					<MainVideo src='https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' ref={mainVideoRef} />
+				</VideoContainer>
 
-			<footer className={s['footer']}>
-				<div className={`${s['icon']} ${s['icon__camera']}`}>
-					<svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-						<path fillRule="evenodd" d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2 2 0 0 1-2-2V5zm11.5 5.175 3.5 1.556V4.269l-3.5 1.556v4.35zM2 4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h7.5a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H2z" />
-					</svg>
-				</div>
-				<div className={`${s['icon']} ${s['icon__microphone']}`}>
-					<svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-						<path d="M3.5 6.5A.5.5 0 0 1 4 7v1a4 4 0 0 0 8 0V7a.5.5 0 0 1 1 0v1a5 5 0 0 1-4.5 4.975V15h3a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1h3v-2.025A5 5 0 0 1 3 8V7a.5.5 0 0 1 .5-.5z" />
-						<path d="M10 8a2 2 0 1 1-4 0V3a2 2 0 1 1 4 0v5zM8 0a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V3a3 3 0 0 0-3-3z" />
-					</svg>
-				</div>
-				<div className={`${s['icon']} ${s['icon__call-end']}`}>
-					<svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-						<path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 0 0 4.168 6.608 17.569 17.569 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.678.678 0 0 0-.58-.122l-2.19.547a1.745 1.745 0 0 1-1.657-.459L5.482 8.062a1.745 1.745 0 0 1-.46-1.657l.548-2.19a.678.678 0 0 0-.122-.58L3.654 1.328zM1.884.511a1.745 1.745 0 0 1 2.612.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.678.678 0 0 0 .178.643l2.457 2.457a.678.678 0 0 0 .644.178l2.189-.547a1.745 1.745 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.634 18.634 0 0 1-7.01-4.42 18.634 18.634 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877L1.885.511z" />
-					</svg>
-				</div>
-			</footer>
-		</div>
+				<Aside>
+					<Chat numberParticipants={clientsDataConnection.length + 1}
+						messages={messages}
+						handleNewMessage={handleNewMessage} />
+				</Aside>
+
+				<Footer />
+			</VideoMessangerContainer>
+
+			{isShowWaitingListPopup && <Popup onClose={() => setIsShowWaitingListPopup(false)}><WaitingList /></Popup>}
+		</>
 	);
 }

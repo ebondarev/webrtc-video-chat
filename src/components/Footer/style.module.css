@@ -1,0 +1,37 @@
+.footer {
+	grid-area: footer;
+	display: flex;
+	justify-content: center;
+	gap: 15px;
+	padding: 10px 0;
+}
+
+.icon {
+	width: 40px;
+	height: 40px;
+	padding: 10px;
+	box-sizing: border-box;
+	border-radius: 50%;
+	background-color: #323232;
+	color: #fff;
+	fill: currentColor;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	cursor: pointer;
+	position: relative;
+}
+
+.icon.main-video__volume {
+	display: none;
+	position: absolute;
+	right: 20px;
+	bottom: 20px;
+	background-color: rgba(50, 50, 50, .5);
+	z-index: 10;
+}
+
+.icon__call-end {
+	transform: rotate(135deg);
+	background-color: #ec5c56;
+}

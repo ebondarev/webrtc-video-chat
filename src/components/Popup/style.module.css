@@ -6,10 +6,6 @@
 	left: 0;
 }
 
-.popup_hide {
-	display: none;
-}
-
 .popup__background {
 	position: absolute;
 	top: 0;

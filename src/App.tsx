@@ -6,17 +6,16 @@ import {
 import { Home } from './pages/Home';
 import { Client } from './pages/Client';
 import { Root } from "./pages/Root";
-import { Popup } from "./components/Popup";
-import { WaitingList } from "./components/WaitingList";
-import { store } from './store';
-import { Provider } from 'react-redux';
+import { useAppSelector } from './hooks/useStore';
+import { Popup } from './components/Popup';
+import { UserNameField } from './components/UserNameField';
 
 export const App: React.FC = () => {
-	const [isShowWaitingListPopup, setIsShowWaitingListPopup] = React.useState(false);
+	const userName = useAppSelector((state) => state.user.name);
 
 	return (
-		<Provider store={store}>
-			<BrowserRouter>
+		<>
+			{userName && <BrowserRouter>
 				<Switch>
 					<Route path="/root">
 						<Root />
@@ -28,11 +27,9 @@ export const App: React.FC = () => {
 						<Home />
 					</Route>
 				</Switch>
-			</BrowserRouter>
+			</BrowserRouter>}
 
-			<Popup isShow={ isShowWaitingListPopup }>
-				{isShowWaitingListPopup && <WaitingList />}
-			</Popup>
-		</Provider>
+			{!userName && <Popup><UserNameField /></Popup>}
+		</>
 	);
 }

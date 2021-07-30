@@ -1,13 +1,13 @@
 import React from 'react';
 import { Button } from '../Button';
 import s from './style.module.css';
-import { useDispatch } from 'react-redux'
-import { setName } from './slice';
+import { setName } from '../../store/userSlice';
+import { useAppDispatch } from '../../hooks/useStore';
 
 export const UserNameField: React.FC = () => {
-	const dispatch = useDispatch();
+	const dispatch = useAppDispatch();
 	const [isButtonDisabled, setIsButtonDisabled] = React.useState(true);
-	const inputRef = React.useRef<HTMLInputElement | null>(null);
+	const inputRef = React.useRef<HTMLInputElement>(null);
 
 	return (
 		<>
