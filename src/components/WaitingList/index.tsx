@@ -1,18 +1,33 @@
 import { Button, ButtonDanger } from '../Button';
 import s from './style.module.css';
 
-export const WaitingList: React.FC = () => {
+export interface WaitingItem {
+	id: string;
+	name: string;
+};
+
+interface Props {
+	waitingList: WaitingItem[];
+	handleAdd: (id: string) => void;
+	handleRemove: (id: string) => void;
+}
+
+export const WaitingList: React.FC<Props> = ({ waitingList, handleAdd, handleRemove }) => {
 	return (
 		<>
 			<div className={s['title']}>Show waiting list:</div>
 			<ul className={s['waiting-list']}>
-				<li className={s['waiting-list-item']}>
-					<div className={s['waiting-list-item__name']}>Name</div>
-					<div className={s['waiting-list-item__controls']}>
-						<Button onClick={() => {}}>Add</Button>
-						<ButtonDanger onClick={() => {}}>Remove</ButtonDanger>
-					</div>
-				</li>
+				{waitingList.map(({ id, name }) => {
+					return (
+						<li className={s['waiting-list-item']} key={id}>
+							<div className={s['waiting-list-item__name']}>{name}</div>
+							<div className={s['waiting-list-item__controls']}>
+								<Button onClick={() => handleAdd(id)}>Add</Button>
+								<ButtonDanger onClick={() => handleRemove(id)}>Remove</ButtonDanger>
+							</div>
+						</li>
+					);
+				})}
 			</ul>
 		</>
 	);

@@ -8,12 +8,14 @@ import { Popup } from "../../components/Popup";
 import { UsersVideo } from "../../components/UsersVideo";
 import { VideoContainer } from "../../components/VideoContainer";
 import { VideoMessangerContainer } from "../../components/VideoMessangerContainer";
-import { WaitingList } from "../../components/WaitingList";
+import { WaitingItem, WaitingList } from "../../components/WaitingList";
 import { useLocalMediaStream } from "../../hooks/useLocalMediaStream";
 import { usePeer } from "../../hooks/usePeer";
 import Peer from "../../vendor/peerjs";
-import { ConnectionDataTypes } from "../Client";
+import { ConnectionDataTypes, DataMessage } from "../Client";
 import s from './style.module.css';
+
+export type Connections = (Peer.DataConnection | Peer.MediaConnection)[];
 
 export function Root() {
 	const [linkToConnectToRoot, setLinkToConnectToRoot] = React.useState('');
@@ -21,8 +23,8 @@ export function Root() {
 	const [usersVideo, setUsersVideo] = React.useState<MediaStream[]>([]);
 	const [isShowWaitingListPopup, setIsShowWaitingListPopup] = React.useState(false);
 	const [messages, setMessages] = React.useState<Message[]>([]);
-	const [clientsMediaConnection, setClientsMediaConnection] = React.useState<Peer.MediaConnection[]>([]);
-	const [clientsDataConnection, setClientsDataConnection] = React.useState<Peer.DataConnection[]>([]);
+	const [waitingConnnections, setWaitingConnections] = React.useState<Connections>([]);
+	const [approvedConnections, setApprovedConnections] = React.useState<Connections>([]);
 
 	const mainVideoRef = React.useRef<HTMLVideoElement>(null);
 
@@ -36,7 +38,7 @@ export function Root() {
 	}, [localStream]);
 
 	React.useEffect(() => {
-		// Set text of linkToConnectToRoot
+		// Create link to share room
 		if (peer === undefined) return;
 		const pageLocation = new URL(`${window.location.origin}/client`);
 		pageLocation.searchParams.append('room-id', peer.id);
@@ -44,7 +46,7 @@ export function Root() {
 	}, [peer]);
 
 	React.useEffect(() => {
-		// Revert buttonCopyText
+		// Revert of button 'Copy'
 		if (buttonCopyText === 'Copied') {
 			setTimeout(() => {
 				setButtonCopyText('Copy');
@@ -53,83 +55,40 @@ export function Root() {
 	}, [buttonCopyText]);
 
 	React.useEffect(() => {
-		// Handle MediaStream from clients
-		if ((peer === undefined) || (localStream === undefined)) return;
-		peer.on('call', (clientMediaConnection) => {
-			console.log('[LOG]', 'call');
-			setClientsMediaConnection([...clientsMediaConnection, clientMediaConnection]);
-			clientMediaConnection.answer(localStream);
-			clientMediaConnection.on('stream', (clientStream) => {
-				setUsersVideo((usersVideo) => {
-					if (usersVideo.some((stream) => stream.id === clientStream.id)) return usersVideo;
-					return [...usersVideo, clientStream];
-				});
-			});
-			clientMediaConnection.on('close', () => {
-				// Firefox does not yet support this event.
-				console.log('[LOG]', 'close media connection');
-			});
-		});
-		// Если в список зависимостей добавить clientsMediaConnection и usersVideo, то хук будет вызываться чаще чем нужно
-		// Хук должен вызываться один раз когда peer и localStream не undefined
-	}, [peer, localStream/* , clientsMediaConnection, usersVideo */]);
-
-	React.useEffect(() => {
-		// Handle DataStream from clients
+		// Waiting connections from clients and add them to listWaitingClients
 		if (peer === undefined) return;
-		peer.on('connection', (clientDataConnection) => {
-			clientDataConnection.on('open', () => {
-				/*console.log('[LOG]', 'clientsDataConnection', clientsDataConnection);
-				clientsDataConnection.forEach((connection, index, arr) => {
-					connection.send({type: ConnectionDataTypes.CLIENT_IDS, payload: arr.map((connection) => connection.peer)});
-					connection.send({type: ConnectionDataTypes.PLAYBACK_TIMESTAMP, payload: mainVideoRef.current?.currentTime ?? 0});
-				});
-				clientDataConnection.send({type: ConnectionDataTypes.CLIENT_IDS, payload: clientsDataConnection.map((connection) => connection.peer)});
-				clientDataConnection.send({type: ConnectionDataTypes.PLAYBACK_TIMESTAMP, payload: mainVideoRef.current?.currentTime ?? 0});
-
-				clientDataConnection.send({ type: ConnectionDataTypes.MESSAGE_LIST, payload: messages });
-				*/
-				clientDataConnection.on('data', (data: any) => {
-					if (data.type === ConnectionDataTypes.MESSAGE) {
-						setMessages((messages) => [...messages, data.payload]);
-					} else if (data.type === ConnectionDataTypes.CLOSE_CONNECTION) {
-						setClientsDataConnection(
-							clientsDataConnection.filter((connection) => connection.peer !== clientDataConnection.peer)
-						);
-						setClientsMediaConnection(
-							clientsMediaConnection.filter((connection) => connection.peer !== clientDataConnection.peer)
-						);
-					}
+		// Data connection
+		peer.on('connection', (dataConnectionFromClient) => {
+			dataConnectionFromClient.on('open', () => {
+				dataConnectionFromClient.on('data', (dataMessageFromClient: DataMessage) => {
+					console.log('[LOG]', 'got data from client', dataMessageFromClient);
 				});
 			});
-			clientDataConnection.on('close', () => {
-				// Firefox does not yet support this event.
-				console.log('[LOG]', 'close data connection');
-			});
-			setClientsDataConnection((connections) => {
-				if (connections.some((connect) => connect.peer === clientDataConnection.peer)) return connections;
-				console.log('[LOG]', 'add clientDataConnection');
-				return [...connections, clientDataConnection];
+			setWaitingConnections((connections) => {
+				const isSaved = connections.find((connection) => (connection.peer === dataConnectionFromClient.peer) && (connection.type === 'data'));
+				if (isSaved) return connections;
+				return [...connections, dataConnectionFromClient];
 			});
 		});
-	}, [peer/* , clientsDataConnection, clientsMediaConnection, messages */]);
-
-	React.useEffect(() => {
-		// Notify clients about changes in clients
-		clientsDataConnection.forEach((connection, index) => {
-			console.log('[LOG]', 'send clients ids another clients', clientsDataConnection.filter((_connection) => _connection.peer !== connection.peer).map((_connection) => _connection.peer));
-			connection.send({
-				type: ConnectionDataTypes.CLIENT_IDS,
-				payload: clientsDataConnection
-					.filter((_connection) => _connection.peer !== connection.peer)
-					.map((_connection) => _connection.peer)
-			});
-			connection.send({
-				type: ConnectionDataTypes.PLAYBACK_TIMESTAMP,
-				payload: mainVideoRef.current?.currentTime ?? 0
+		// Media connection
+		peer.on('call', (mediaConnectionFromClient) => {
+			setApprovedConnections((approvedConnections) => {
+				// В approvedConnections уже есть dataConnectionFromClient
+				const isApproved = approvedConnections.some((connect) => connect.peer === mediaConnectionFromClient.peer);
+				if (isApproved) {
+					mediaConnectionFromClient.answer(localStream);
+					mediaConnectionFromClient.on('stream', (clientStream: MediaStream) => {
+						setUsersVideo((usersVideo) => {
+							return usersVideo.every((stream) => stream.id !== clientStream.id) ? [...usersVideo, clientStream] : usersVideo;
+						});
+					});
+					return [...approvedConnections, mediaConnectionFromClient];
+				} else {
+					return approvedConnections;
+				}
 			});
 		});
-	}, [clientsDataConnection]);
+	}, [peer]);
 
 	function handleClickShareRoomButton() {
 		setButtonCopyText('Copied');
@@ -139,13 +98,26 @@ export function Root() {
 	}
 
 	function handleNewMessage(message: Message) {
-		clientsDataConnection.forEach((connection) => connection.send({type: ConnectionDataTypes.MESSAGE, payload: message}));
 		setMessages((messages) => [...messages, message]);
 	}
 
-	function getNumberParticipants(): number {
-		let number = clientsDataConnection.length;
-		return number + 1;
+	function getWaitingList(listWaitingClients: Connections): WaitingItem[] {
+		return listWaitingClients
+			.filter((connect) => connect.type === 'data')
+			.map((connect) => ({ id: connect.peer, name: (connect as Peer.DataConnection).label }));
+	}
+
+	function removeWaitingConnections(id: string) {
+		setWaitingConnections(
+			waitingConnnections
+				.map((connect) => {
+					if (connect.peer === id) {
+						connect.close();
+					}
+					return connect;
+				})
+				.filter((connect) => connect.peer !== id)
+		);
 	}
 
 	return (
@@ -168,7 +140,7 @@ export function Root() {
 				</VideoContainer>
 
 				<Aside>
-					<Chat numberParticipants={getNumberParticipants()}
+					<Chat numberParticipants={1}
 						messages={messages}
 						handleNewMessage={handleNewMessage} />
 				</Aside>
@@ -176,7 +148,21 @@ export function Root() {
 				<Footer />
 			</VideoMessangerContainer>
 
-			{isShowWaitingListPopup && <Popup onClose={() => setIsShowWaitingListPopup(false)}><WaitingList /></Popup>}
+			{isShowWaitingListPopup && (
+				<Popup onClose={() => setIsShowWaitingListPopup(false)}>
+					<WaitingList waitingList={getWaitingList(waitingConnnections)}
+						handleAdd={(id: string) => {
+							const addedDataConnection = waitingConnnections.filter((connect) => (connect.peer === id) && (connect.type === 'data'))[0] as Peer.DataConnection;
+							addedDataConnection.send({ type: ConnectionDataTypes.APPROVED });
+							setApprovedConnections([...approvedConnections, ...waitingConnnections.filter((connect) => connect.peer === id)]);
+							setWaitingConnections(
+								waitingConnnections.filter((connect) => connect.peer !== id)
+							);
+						}}
+						handleRemove={removeWaitingConnections}
+					/>
+				</Popup>
+			)}
 		</>
 	);
 }
