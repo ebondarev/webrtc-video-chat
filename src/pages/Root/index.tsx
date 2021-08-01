@@ -17,6 +17,11 @@ import s from './style.module.css';
 
 export type Connections = (Peer.DataConnection | Peer.MediaConnection)[];
 
+export interface PlayerEventPayload {
+	eventName: string;
+	progress: number;
+}
+
 export function Root() {
 	const [linkToConnectToRoot, setLinkToConnectToRoot] = React.useState('');
 	const [buttonCopyText, setButtonCopyText] = React.useState('Copy');
@@ -25,8 +30,6 @@ export function Root() {
 	const [messages, setMessages] = React.useState<Message[]>([]);
 	const [waitingConnnections, setWaitingConnections] = React.useState<Connections>([]);
 	const [approvedConnections, setApprovedConnections] = React.useState<Connections>([]);
-
-	const mainVideoRef = React.useRef<HTMLVideoElement>(null);
 
 	const localStream = useLocalMediaStream();
 	const peer = usePeer();
@@ -120,6 +123,18 @@ export function Root() {
 		);
 	}
 
+	function sharePlayerEvent(approvedConnections: Connections, event: React.SyntheticEvent<HTMLVideoElement, Event>) {
+		approvedConnections
+			.filter((connect) => connect.type === 'data')
+			.forEach((connect) => (connect as Peer.DataConnection).send({
+				type: ConnectionDataTypes.PLAYER_EVENT,
+				payload: {
+					eventName: event.type,
+					progress: (event.target as HTMLVideoElement).currentTime,
+				},
+			}));
+	}
+
 	return (
 		<>
 			<VideoMessangerContainer>
@@ -136,7 +151,16 @@ export function Root() {
 
 				<VideoContainer>
 					<UsersVideo streams={usersVideo} />
-					<MainVideo src='https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' ref={mainVideoRef} />
+					<MainVideo src='https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+						onPause={sharePlayerEvent.bind(null, approvedConnections)}
+						onPlay={sharePlayerEvent.bind(null, approvedConnections)}
+						onPlaying={sharePlayerEvent.bind(null, approvedConnections)}
+						onTimeUpdate={sharePlayerEvent.bind(null, approvedConnections)}
+						onSeeked={sharePlayerEvent.bind(null, approvedConnections)}
+						onWaiting={sharePlayerEvent.bind(null, approvedConnections)}
+						controls={true}
+						autoPlay={true}
+					/>
 				</VideoContainer>
 
 				<Aside>

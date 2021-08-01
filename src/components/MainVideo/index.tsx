@@ -1,17 +1,11 @@
 import React from 'react';
 import s from './style.module.css';
 
-interface Props {
-	src: string;
-}
-
-export const MainVideo = React.forwardRef<HTMLVideoElement, Props>(({src}, ref) => {
+export const MainVideo = React.forwardRef<HTMLVideoElement, React.MediaHTMLAttributes<HTMLVideoElement>>((props, ref) => {
 	return (
-		<video className={s['main-video__player']}
-			src={src}
+		<video {...props}
 			ref={ref}
-			controls
-			autoPlay
+			className={s['main-video__player']}
 		></video>
 	)
 });
