@@ -177,7 +177,13 @@ export function Root() {
 					<WaitingList waitingList={getWaitingList(waitingConnnections)}
 						handleAdd={(id: string) => {
 							const addedDataConnection = waitingConnnections.filter((connect) => (connect.peer === id) && (connect.type === 'data'))[0] as Peer.DataConnection;
-							addedDataConnection.send({ type: ConnectionDataTypes.APPROVED });
+							addedDataConnection.send({
+								type: ConnectionDataTypes.APPROVED,
+								payload: {
+									messages,
+									otherClientsId: approvedConnections.map((connect) => connect.peer),
+								}
+							});
 							setApprovedConnections([...approvedConnections, ...waitingConnnections.filter((connect) => connect.peer === id)]);
 							setWaitingConnections(
 								waitingConnnections.filter((connect) => connect.peer !== id)
