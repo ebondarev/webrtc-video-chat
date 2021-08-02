@@ -111,6 +111,12 @@ export function Root() {
 			.forEach((connect) => (connect as Peer.DataConnection).send({ type: ConnectionDataTypes.MESSAGE_LIST, payload: messages }));
 	}, [messages]);
 
+	React.useEffect(() => {
+		if (waitingConnnections.length === 0) {
+			setIsShowWaitingListPopup(false);
+		}
+	}, [waitingConnnections]);
+
 	function handleClickShareRoomButton() {
 		setButtonCopyText('Copied');
 		navigator.clipboard.writeText(linkToConnectToRoot)
@@ -177,6 +183,8 @@ export function Root() {
 			});
 	}
 
+	const waitingList = getWaitingList(waitingConnnections);
+
 	return (
 		<>
 			<VideoMessangerContainer>
@@ -187,7 +195,7 @@ export function Root() {
 
 				<div className={s['toggle-waiting-list']}>
 					<Button onClick={() => setIsShowWaitingListPopup(true)}>
-						Waiting list
+						Waiting list - {waitingList.length}
 					</Button>
 				</div>
 
@@ -216,7 +224,7 @@ export function Root() {
 
 			{isShowWaitingListPopup && (
 				<Popup onClose={() => setIsShowWaitingListPopup(false)}>
-					<WaitingList waitingList={getWaitingList(waitingConnnections)}
+					<WaitingList waitingList={waitingList}
 						handleAdd={(id: string) => {
 							const addedDataConnection = waitingConnnections.filter((connect) => (connect.peer === id) && (connect.type === 'data'))[0] as Peer.DataConnection;
 							addedDataConnection.send({

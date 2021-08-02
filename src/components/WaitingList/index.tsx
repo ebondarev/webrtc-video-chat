@@ -15,15 +15,15 @@ interface Props {
 export const WaitingList: React.FC<Props> = ({ waitingList, handleAdd, handleRemove }) => {
 	return (
 		<>
-			<div className={s['title']}>Show waiting list:</div>
+			<div className={s['title']}>Waiting list:</div>
 			<ul className={s['waiting-list']}>
 				{waitingList.map(({ id, name }) => {
 					return (
 						<li className={s['waiting-list-item']} key={id}>
 							<div className={s['waiting-list-item__name']}>{name}</div>
 							<div className={s['waiting-list-item__controls']}>
-								<Button onClick={() => handleAdd(id)}>Add</Button>
-								<ButtonDanger onClick={() => handleRemove(id)}>Remove</ButtonDanger>
+								<Button onClick={() => handleAdd(id)}>+</Button>
+								<ButtonDanger onClick={() => handleRemove(id)}>-</ButtonDanger>
 							</div>
 						</li>
 					);
