@@ -104,16 +104,26 @@ export const Client: React.FC<Props> = () => {
 								FAST = 1.25,
 								EXTRA_FAST = 1.5,
 							};
-							if ((Math.abs(currentTimeDiff) < 0.3) && (mainVideoElement.playbackRate !== playbackRate.NORMAL)) {
-								mainVideoElement.playbackRate = playbackRate.NORMAL;
-							} if ((0.3 <= currentTimeDiff) && (currentTimeDiff < 1.5) && (mainVideoElement.playbackRate !== playbackRate.SLOW)) {
-								mainVideoElement.playbackRate = playbackRate.SLOW;
-							} else if ((-0.3 >= currentTimeDiff) && (currentTimeDiff > -1.5) && (mainVideoElement.playbackRate !== playbackRate.FAST)) {
-								mainVideoElement.playbackRate = playbackRate.FAST;
+							if ((Math.abs(currentTimeDiff) < 0.15)) {
+								if (mainVideoElement.playbackRate !== playbackRate.NORMAL) {
+									mainVideoElement.playbackRate = playbackRate.NORMAL;
+								}
+							} else if ((0.15 <= currentTimeDiff) && (currentTimeDiff < 1.5)) {
+								if (mainVideoElement.playbackRate !== playbackRate.SLOW) {
+									mainVideoElement.playbackRate = playbackRate.SLOW;
+								}
+							} else if ((-0.15 >= currentTimeDiff) && (currentTimeDiff > -1.5)) {
+								if (mainVideoElement.playbackRate !== playbackRate.FAST) {
+									mainVideoElement.playbackRate = playbackRate.FAST;
+								}
 							} else if (currentTimeDiff >= 1.5 && currentTimeDiff < 2.5) {
-								mainVideoElement.playbackRate = playbackRate.EXTRA_SLOW;
+								if (mainVideoElement.playbackRate !== playbackRate.EXTRA_SLOW) {
+									mainVideoElement.playbackRate = playbackRate.EXTRA_SLOW;
+								}
 							} else if (currentTimeDiff <= -1.5 && currentTimeDiff > -2.5) {
-								mainVideoElement.playbackRate = playbackRate.EXTRA_FAST;
+								if (mainVideoElement.playbackRate !== playbackRate.EXTRA_FAST) {
+									mainVideoElement.playbackRate = playbackRate.EXTRA_FAST;
+								}
 							} else {
 								mainVideoElement.currentTime = payload.progress;
 							}
