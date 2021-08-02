@@ -158,7 +158,7 @@ export const Client: React.FC<Props> = () => {
 			</VideoContainer>
 
 			<Aside>
-				<Chat numberParticipants={1}
+				<Chat numberParticipants={usersVideo.length}
 					messages={messages}
 					handleNewMessage={handleNewMessage} />
 			</Aside>

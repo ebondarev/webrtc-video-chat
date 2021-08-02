@@ -164,7 +164,7 @@ export function Root() {
 				</VideoContainer>
 
 				<Aside>
-					<Chat numberParticipants={1}
+					<Chat numberParticipants={usersVideo.length}
 						messages={messages}
 						handleNewMessage={handleNewMessage} />
 				</Aside>
