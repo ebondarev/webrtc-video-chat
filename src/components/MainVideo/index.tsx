@@ -7,5 +7,5 @@ export const MainVideo = React.forwardRef<HTMLVideoElement, React.MediaHTMLAttri
 			ref={ref}
 			className={s['main-video__player']}
 		></video>
-	)
+	);
 });
