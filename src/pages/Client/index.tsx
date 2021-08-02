@@ -35,6 +35,7 @@ export const Client: React.FC<Props> = () => {
 	const [usersVideo, setUsersVideo] = React.useState<MediaStream[]>([]);
 	const [messages, setMessages] = React.useState<Message[]>([]);
 	const [connectionsToOtherClients, setConnectionsToOtherClients] = React.useState<Connections>([]);
+	const [connectionsToRoot, setConnectionsToRoot] = React.useState<Connections>([]);
 
 	const rootPeerIdRef = React.useRef(new URL(window.location.toString()).searchParams.get('room-id'));
 	const mainVideoRef = React.useRef<HTMLVideoElement>(null);
@@ -75,6 +76,10 @@ export const Client: React.FC<Props> = () => {
 								: usersVideo;
 						});
 					});
+					setConnectionsToRoot((connectionsToRoot) => {
+						if (connectionsToRoot.some((connect) => (connect.peer === mediaConnectionToRoot.peer) && (connect.type === 'media'))) return connectionsToRoot;
+						return [...connectionsToRoot, mediaConnectionToRoot];
+					});
 				} else if (dataMessageFromRoot.type === ConnectionDataTypes.PLAYER_EVENT) {
 					const payload = dataMessageFromRoot.payload as PlayerEventPayload;
 					const mainVideoElement = mainVideoRef.current;
@@ -114,8 +119,17 @@ export const Client: React.FC<Props> = () => {
 							}
 						}
 					}
+				} else if (dataMessageFromRoot.type === ConnectionDataTypes.MESSAGE_LIST) {
+					setMessages((messages) => {
+						const newMessages = dataMessageFromRoot.payload.filter((messageFromRoot: Message) => !messages.find((message) => message.id === messageFromRoot.id));
+						return [...messages, ...newMessages];
+					});
 				}
 			});
+		});
+		setConnectionsToRoot((connectionsToRoot) => {
+			if (connectionsToRoot.some((connect) => (connect.peer === dataConnectToRoot.peer) && (connect.type === 'data'))) return connectionsToRoot;
+			return [...connectionsToRoot, dataConnectToRoot];
 		});
 	}, [peer, localStream]);
 
@@ -144,7 +158,10 @@ export const Client: React.FC<Props> = () => {
 	}, [localStream]);
 
 	function handleNewMessage(message: Message) {
-		setMessages((messages) => [...messages, message]);
+		const dataConnectionToRoot = connectionsToRoot.find((connect) => connect.type === 'data') as Peer.DataConnection | undefined;
+		if (dataConnectionToRoot) {
+			dataConnectionToRoot.send({ type: ConnectionDataTypes.MESSAGE, payload: message });
+		}
 	}
 
 	return (

@@ -64,7 +64,9 @@ export function Root() {
 		peer.on('connection', (dataConnectionFromClient) => {
 			dataConnectionFromClient.on('open', () => {
 				dataConnectionFromClient.on('data', (dataMessageFromClient: DataMessage) => {
-					console.log('[LOG]', 'got data from client', dataMessageFromClient);
+					if (dataMessageFromClient.type === ConnectionDataTypes.MESSAGE) {
+						setMessages((messages) => [...messages, dataMessageFromClient.payload]);
+					}
 				});
 			});
 			setWaitingConnections((connections) => {
@@ -92,6 +94,12 @@ export function Root() {
 			});
 		});
 	}, [peer]);
+
+	React.useEffect(() => {
+		approvedConnections
+			.filter((connect) => connect.type === 'data')
+			.forEach((connect) => (connect as Peer.DataConnection).send({ type: ConnectionDataTypes.MESSAGE_LIST, payload: messages }));
+	}, [messages]);
 
 	function handleClickShareRoomButton() {
 		setButtonCopyText('Copied');
