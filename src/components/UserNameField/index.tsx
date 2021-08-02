@@ -9,6 +9,10 @@ export const UserNameField: React.FC = () => {
 	const [isButtonDisabled, setIsButtonDisabled] = React.useState(true);
 	const inputRef = React.useRef<HTMLInputElement>(null);
 
+	React.useEffect(() => {
+		inputRef.current?.focus();
+	}, []);
+
 	return (
 		<>
 			<div className={s['title']}>Enter your name:</div>
