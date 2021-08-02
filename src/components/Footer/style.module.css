@@ -35,3 +35,15 @@
 	transform: rotate(135deg);
 	background-color: #ec5c56;
 }
+
+.icon_cross::after {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%) rotate(-45deg);
+	display: block;
+	width: 60%;
+	height: 2px;
+	background-color: #ec5c56;
+}

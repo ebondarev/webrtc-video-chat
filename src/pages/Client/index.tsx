@@ -124,6 +124,18 @@ export const Client: React.FC<Props> = () => {
 						const newMessages = dataMessageFromRoot.payload.filter((messageFromRoot: Message) => !messages.find((message) => message.id === messageFromRoot.id));
 						return [...messages, ...newMessages];
 					});
+				} else if (dataMessageFromRoot.type === ConnectionDataTypes.CLOSE_CONNECTION) {
+					console.log('[LOG]', 'dataMessageFromRoot.payload.peer', dataMessageFromRoot.payload.peer);
+					if (dataMessageFromRoot.payload.peer === dataConnectToRoot.peer) {
+						window.location.replace(window.location.origin);
+					} else {
+						setConnectionsToOtherClients((connectionsToOtherClients) => {
+							return connectionsToOtherClients.filter((connect) => connect.peer !== dataMessageFromRoot.payload.peer);
+						});
+						setUsersVideo((usersVideo) => {
+							return usersVideo.filter((stream) => stream.id !== dataMessageFromRoot.payload.id);
+						});
+					}
 				}
 			});
 		});
@@ -164,6 +176,30 @@ export const Client: React.FC<Props> = () => {
 		}
 	}
 
+	function handleClickByCallEnd() {
+		// Send only to root
+		connectionsToRoot
+			.filter((connect) => connect.type === 'data')
+			.forEach((connect) => {
+				(connect as Peer.DataConnection).send({ type: ConnectionDataTypes.CLOSE_CONNECTION, payload: {id: localStream?.id} });
+			});
+		window.location.replace(window.location.origin);
+	}
+
+	function handleClickByCamera() {
+		localStream?.getVideoTracks()
+			.forEach((videoTrack) => {
+				videoTrack.enabled = !videoTrack.enabled;
+			});
+	}
+
+	function handleClickByMicrophone() {
+		localStream?.getAudioTracks()
+			.forEach((audioTrack) => {
+				audioTrack.enabled = !audioTrack.enabled;
+			});
+	}
+
 	return (
 		<VideoMessangerContainer>
 			<VideoContainer>
@@ -180,7 +216,7 @@ export const Client: React.FC<Props> = () => {
 					handleNewMessage={handleNewMessage} />
 			</Aside>
 
-			<Footer />
+			<Footer onClickByCallEnd={handleClickByCallEnd} onClickByCamera={handleClickByCamera} onClickByMicrophone={handleClickByMicrophone} />
 		</VideoMessangerContainer>
 	);
 }

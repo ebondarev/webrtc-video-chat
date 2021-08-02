@@ -66,6 +66,16 @@ export function Root() {
 				dataConnectionFromClient.on('data', (dataMessageFromClient: DataMessage) => {
 					if (dataMessageFromClient.type === ConnectionDataTypes.MESSAGE) {
 						setMessages((messages) => [...messages, dataMessageFromClient.payload]);
+					} else if (dataMessageFromClient.type === ConnectionDataTypes.CLOSE_CONNECTION) {
+						setUsersVideo((usersVideo) => {
+							return usersVideo.filter((stream) => stream.id !== dataMessageFromClient.payload.id);
+						});
+						setApprovedConnections((approvedConnections) => {
+							approvedConnections
+								.filter((connect) => (connect.peer !== dataConnectionFromClient.peer) && connect.type === 'data')
+								.forEach((connect) => (connect as Peer.DataConnection).send({...dataMessageFromClient, peer: dataConnectionFromClient.peer}));
+							return approvedConnections.filter((connect) => connect.peer !== dataConnectionFromClient.peer);
+						});
 					}
 				});
 			});
@@ -143,6 +153,30 @@ export function Root() {
 			}));
 	}
 
+	function handleClickByCallEnd() {
+		[...approvedConnections, ...waitingConnnections]
+			.filter((connect) => connect.type === 'data')
+			.map((connect) => {
+				(connect as Peer.DataConnection).send({ type: ConnectionDataTypes.CLOSE_CONNECTION, payload: {peer: peer?.id} });
+				return connect;
+			});
+		window.location.replace(window.location.origin);
+	}
+
+	function handleClickByCamera() {
+		localStream?.getVideoTracks()
+			.forEach((videoTrack) => {
+				videoTrack.enabled = !videoTrack.enabled;
+			});
+	}
+
+	function handleClickByMicrophone() {
+		localStream?.getAudioTracks()
+			.forEach((audioTrack) => {
+				audioTrack.enabled = !audioTrack.enabled;
+			});
+	}
+
 	return (
 		<>
 			<VideoMessangerContainer>
@@ -177,7 +211,7 @@ export function Root() {
 						handleNewMessage={handleNewMessage} />
 				</Aside>
 
-				<Footer />
+				<Footer onClickByCallEnd={handleClickByCallEnd} onClickByCamera={handleClickByCamera} onClickByMicrophone={handleClickByMicrophone} />
 			</VideoMessangerContainer>
 
 			{isShowWaitingListPopup && (
