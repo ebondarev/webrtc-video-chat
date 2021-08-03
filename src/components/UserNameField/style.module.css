@@ -1,0 +1,30 @@
+.title {
+	margin-bottom: 10px;
+}
+
+.input-with-button {
+	display: flex;
+}
+
+.input-with-button__label {
+	background-color: #fff;
+	display: inline-flex;
+	justify-content: stretch;
+	border-radius: 3px 0 0 3px;
+}
+
+.input-with-button__input {
+	background-color: transparent;
+	border: none;
+	outline: none;
+}
+
+.input-with-button__button {
+	border-radius: 0 3px 3px 0;
+}
+
+@media screen and (max-width: 1024px) {
+	.input-with-button__label {
+		width: 100%;
+	}
+}

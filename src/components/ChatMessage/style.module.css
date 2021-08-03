@@ -1,0 +1,20 @@
+.chat-messages__message {
+	display: grid;
+	grid-template-columns: 30px 1fr;
+	grid-template-rows: auto;
+	grid-template-areas: "avatar chat-messages__name" "avatar chat-message__text";
+	gap: 5px 10px;
+}
+
+.chat-message__name {
+	grid-area: chat-messages__name;
+	display: -webkit-box;
+	-webkit-line-clamp: 1;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	color: #ccc;
+}
+
+.chat-message__text {
+	grid-area: chat-message__text;
+}

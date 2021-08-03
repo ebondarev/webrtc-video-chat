@@ -1,0 +1,7 @@
+.avatar {
+	grid-area: avatar;
+}
+
+.avatar img {
+	max-width: 100%;
+}

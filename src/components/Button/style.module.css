@@ -1,0 +1,38 @@
+.button {
+	background-color: #1890ff;
+	border: none;
+	border-radius: 3px;
+	padding: 4px 15px;
+	color: #fff;
+	cursor: pointer;
+}
+
+.button:hover, .button:focus {
+	background-color: #40a9ff;
+}
+
+.button:active {
+	background-color: #096dd9;
+}
+
+.button:disabled {
+	opacity: 0.5;
+	background-color: #1890ff;
+	cursor: auto;
+}
+
+.button_danger {
+	background-color: #dc3545;
+}
+
+.button_danger:hover, .button_danger:focus {
+	background-color: #e64756;
+}
+
+.button_danger:active {
+	background-color: #d03242;
+}
+
+.button_danger:disabled {
+	background-color: #dc3545;
+}

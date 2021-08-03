@@ -1,0 +1,16 @@
+.toggle-waiting-list {
+	grid-area: toggle-waiting-list;
+}
+
+.main-video {
+	position: relative;
+}
+
+.share-room {
+	grid-area: 'share-room';
+}
+
+.share-room__link {
+	display: inline-block;
+	margin-left: 10px;
+}

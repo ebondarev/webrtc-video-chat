@@ -1,0 +1,14 @@
+.video-messanger-container {
+	display: grid;
+	grid-template-columns: 3fr 1fr;
+	grid-template-rows: auto;
+	grid-template-areas: "share-room share-room" "toggle-waiting-list toggle-waiting-list" "video-container aside" "footer footer";
+	gap: 10px 20px;
+}
+
+@media screen and (max-width: 667px) {
+	.video-messanger-container {
+		grid-template-columns: 1fr;
+		grid-template-areas: "video-container" "footer" "aside";
+	}
+}
