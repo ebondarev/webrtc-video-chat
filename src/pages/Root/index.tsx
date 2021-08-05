@@ -1,3 +1,7 @@
+/* TODO:
+ * - перенести работу с PeerJS в Redux middleware
+ */
+
 import React from "react";
 import { Aside } from "../../components/Aside";
 import { Button } from "../../components/Button";
